@@ -1,7 +1,7 @@
 <template>
     <div class="max-w-[1500px] mx-auto bg-white rounded-lg shadow-lg p-6">
         <div class="flex justify-between items-center mb-6">
-            <h1 class="text-2xl font-bold">净利润结构与质量</h1>
+            <h1 class="text-2xl font-bold">净利润结构与质量（单位：万元）</h1>
             <div class="text-gray-500">(按年度计划口径分解)</div>
             <div class="flex items-center space-x-4">
                 <input v-model="period" type="month" class="px-3 py-2 border rounded" />

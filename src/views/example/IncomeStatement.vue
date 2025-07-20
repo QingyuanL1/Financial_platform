@@ -1,7 +1,7 @@
 <template>
     <div class="max-w-[1200px] mx-auto bg-white rounded-lg shadow-lg p-6">
         <div class="flex justify-between items-center mb-6">
-            <h1 class="text-2xl font-bold">利润表</h1>
+            <h1 class="text-2xl font-bold">利润表(主表)（单位：万元）</h1>
             <div class="flex items-center space-x-4">
                 <input v-model="period" type="month" class="px-3 py-2 border rounded" @change="handlePeriodChange" />
             </div>

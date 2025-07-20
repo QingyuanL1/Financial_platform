@@ -1,7 +1,7 @@
 <template>
   <div class="bg-gray-100 p-8">
     <div class="max-w-[1600px] mx-auto bg-white rounded-lg shadow-lg p-6">
-      <h1 class="text-2xl font-bold text-center mb-6">资产负债表</h1>
+      <h1 class="text-2xl font-bold text-center mb-6">资产负债表(主表)（单位：万元）</h1>
       <!-- 添加期间输入 -->
       <div class="mb-4">
         <label class="block text-gray-700">期间：</label>

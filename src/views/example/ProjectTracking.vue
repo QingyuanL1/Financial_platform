@@ -4,7 +4,7 @@
             <!-- 标题区域 -->
             <div class="p-6 border-b border-gray-200">
                 <div class="flex justify-between items-center">
-                    <h1 class="text-2xl font-bold">项目跟踪情况:</h1>
+                    <h1 class="text-2xl font-bold">项目跟踪情况(主表)（单位：万元）:</h1>
                     <div class="flex items-center space-x-4">
                         <input v-model="period" type="month"
                             class="px-4 py-2 border rounded-lg text-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />

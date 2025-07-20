@@ -1,7 +1,7 @@
 <template>
     <div class="max-w-[1500px] mx-auto bg-white rounded-lg shadow-lg p-6">
         <div class="flex justify-between items-center mb-6">
-            <h1 class="text-2xl font-bold">非主营业务情况</h1>
+            <h1 class="text-2xl font-bold">非主营业务情况（单位：万元）</h1>
             <div class="flex items-center space-x-4">
                 <input v-model="period" type="month" class="px-3 py-2 border rounded" />
             </div>
@@ -34,7 +34,7 @@
                             <input v-model.number="item.currentPeriod" type="number" class="w-full px-2 py-1 border rounded" step="0.01" />
                         </td>
                         <td class="border border-gray-300 px-4 py-2">
-                            <span class="font-medium">{{ item.cumulative }}</span>
+                            <span class="font-medium">{{ formatNumber(item.cumulative) }}</span>
                         </td>
                         <td class="border border-gray-300 px-4 py-2">
                             {{ calculateProgress(item.yearlyPlan, item.cumulative) }}%
@@ -111,6 +111,11 @@ const getInitialData = (): BusinessItem[] => [
 ]
 
 const businessData = ref<BusinessItem[]>(getInitialData())
+
+// 格式化数字，最多两位小数
+const formatNumber = (value: number): string => {
+    return (value || 0).toFixed(2);
+}
 
 // 计算执行进度
 const calculateProgress = (plan: number, actual: number): string => {
@@ -204,16 +209,29 @@ const loadData = async (targetPeriod: string) => {
     }
 }
 
+// 缓存累计值计算结果，避免重复请求
+const cumulativeCache = new Map<string, Map<string, number>>()
+
 // 计算累计值函数
 const calculateCumulativeValues = async (targetPeriod: string) => {
     try {
+        // 检查缓存
+        if (cumulativeCache.has(targetPeriod)) {
+            const cachedData = cumulativeCache.get(targetPeriod)!
+            businessData.value = businessData.value.map(item => ({
+                ...item,
+                cumulative: cachedData.get(`${item.category}-${item.id}`) || 0
+            }))
+            return
+        }
+
         const [year] = targetPeriod.split('-')
         const cumulativeData = new Map<string, number>()
-        
+
         // 获取从年初到当前期间的所有数据
         for (let month = 1; month <= parseInt(targetPeriod.split('-')[1]); month++) {
             const monthPeriod = `${year}-${month.toString().padStart(2, '0')}`
-            
+
             try {
                 const response = await fetch(`http://47.111.95.19:3000/non-main-business/${monthPeriod}`)
                 if (response.ok) {
@@ -230,13 +248,16 @@ const calculateCumulativeValues = async (targetPeriod: string) => {
                 console.log(`跳过期间 ${monthPeriod} 的数据计算:`, error)
             }
         }
-        
+
+        // 缓存结果
+        cumulativeCache.set(targetPeriod, cumulativeData)
+
         // 更新累计值
         businessData.value = businessData.value.map(item => ({
             ...item,
             cumulative: cumulativeData.get(`${item.category}-${item.id}`) || 0
         }))
-        
+
     } catch (error) {
         console.error('计算累计值失败:', error)
     }
@@ -254,14 +275,30 @@ watch(() => route.query.period, (newPeriod) => {
 watch(period, (newPeriod, oldPeriod) => {
     if (newPeriod && newPeriod !== oldPeriod) {
         console.log(`期间发生变化: ${oldPeriod} -> ${newPeriod}`)
+        // 清除缓存，确保获取最新数据
+        cumulativeCache.clear()
         loadData(newPeriod)
         loadRemarksData()
     }
 })
 
-// 监听当期值变化，自动重新计算累计值
-watch(() => businessData.value.map(item => item.currentPeriod), async () => {
+// 防抖函数
+const debounce = (func: Function, delay: number) => {
+    let timeoutId: NodeJS.Timeout
+    return (...args: any[]) => {
+        clearTimeout(timeoutId)
+        timeoutId = setTimeout(() => func.apply(null, args), delay)
+    }
+}
+
+// 防抖的累计值计算函数
+const debouncedCalculateCumulative = debounce(async () => {
     await calculateCumulativeValues(period.value)
+}, 1000) // 1秒防抖
+
+// 监听当期值变化，使用防抖机制避免频繁请求
+watch(() => businessData.value.map(item => item.currentPeriod), () => {
+    debouncedCalculateCumulative()
 }, { deep: true })
 
 const handleSave = async () => {
@@ -289,6 +326,9 @@ const handleSave = async () => {
 
         // 2. 保存到 form_submissions 表
         await recordFormSubmission(MODULE_IDS.NON_MAIN_BUSINESS, period.value, businessData.value, remarks.value, suggestions.value)
+
+        // 3. 清除缓存，确保下次加载最新数据
+        cumulativeCache.clear()
 
         alert('保存成功')
     } catch (error) {

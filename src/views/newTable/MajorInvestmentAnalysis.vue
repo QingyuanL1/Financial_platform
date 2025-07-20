@@ -1,6 +1,6 @@
 <template>
   <div class="container mx-auto p-6">
-    <h1 class="text-2xl font-bold mb-6">年度重大投资情况</h1>
+    <h1 class="text-2xl font-bold mb-6">年度重大投资情况（单位：万元）</h1>
     
     <div class="bg-white rounded-lg shadow-md p-6 mb-6">
       <div class="flex items-center justify-between mb-4">

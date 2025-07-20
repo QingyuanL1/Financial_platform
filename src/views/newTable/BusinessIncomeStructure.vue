@@ -1,7 +1,7 @@
 <template>
     <div class="max-w-[1500px] mx-auto bg-white rounded-lg shadow-lg p-6">
         <div class="flex justify-between items-center mb-6">
-            <h1 class="text-2xl font-bold">营业收入结构与质量</h1>
+            <h1 class="text-2xl font-bold">营业收入结构与质量（单位：万元）</h1>
             <div class="flex items-center space-x-4">
                 <input v-model="period" type="month" class="px-3 py-2 border rounded" />
             </div>
@@ -28,13 +28,13 @@
                             {{ item.category }}
                         </td>
                         <td class="border border-gray-300 px-4 py-2">
-                            <span class="w-full px-2 py-1">{{ item.yearlyPlan }}</span>
+                            {{ item.yearlyPlan.toFixed(2) }}
                         </td>
                         <td class="border border-gray-300 px-4 py-2">
-                            <span class="w-full px-2 py-1">{{ item.currentMonthIncome }}</span>
+                            {{ item.currentMonthIncome.toFixed(2) }}
                         </td>
                         <td class="border border-gray-300 px-4 py-2">
-                            <span class="w-full px-2 py-1">{{ item.accumulatedIncome }}</span>
+                            {{ item.accumulatedIncome.toFixed(2) }}
                         </td>
                         <td class="border border-gray-300 px-4 py-2">
                             <span class="text-sm font-medium">{{ calculateProgress(item.yearlyPlan, item.accumulatedIncome) }}%</span>
@@ -100,12 +100,11 @@ interface IncomeItem {
 
 // 初始数据模板（当没有数据时使用）
 const getInitialData = (): IncomeItem[] => [
-    { id: 1, category: '主营业务', yearlyPlan: 0, currentMonthIncome: 0, accumulatedIncome: 0 },
-    { id: 2, category: '非主营业务', yearlyPlan: 0, currentMonthIncome: 0, accumulatedIncome: 0 }
+    { id: 1, category: '主营业务', yearlyPlan: 59400, currentMonthIncome: 0, accumulatedIncome: 0 },
+    { id: 2, category: '非主营业务', yearlyPlan: 600, currentMonthIncome: 0, accumulatedIncome: 0 }
 ]
 
 const incomeData = ref<IncomeItem[]>(getInitialData())
-const allMonthsData = ref<any[]>([]) // 存储所有月份的数据
 
 // 备注和建议
 const remarks = ref('')
@@ -116,69 +115,6 @@ const calculateProgress = (yearlyPlan: number, accumulatedIncome: number): strin
   if (!yearlyPlan || yearlyPlan === 0) return '0.00'
   const progress = (accumulatedIncome / yearlyPlan) * 100
   return progress.toFixed(2)
-}
-
-// 获取所有月份数据用于累计计算
-const loadAllMonthsData = async (currentPeriod: string) => {
-    try {
-        const [year, month] = currentPeriod.split('-')
-        const currentMonth = parseInt(month)
-        const allData = []
-        
-        // 获取当年1月到当前月的所有数据
-        for (let i = 1; i <= currentMonth; i++) {
-            const monthPeriod = `${year}-${i.toString().padStart(2, '0')}`
-            try {
-                const response = await fetch(`http://47.111.95.19:3000/business-income/${monthPeriod}`)
-                if (response.ok) {
-                    const result = await response.json()
-                    if (result.data && Array.isArray(result.data)) {
-                        allData.push({ period: monthPeriod, data: result.data })
-                    }
-                }
-            } catch (error) {
-                console.log(`跳过月份 ${monthPeriod}:`, error)
-            }
-        }
-        
-        allMonthsData.value = allData
-        console.log('加载的所有月份数据:', allData)
-    } catch (error) {
-        console.error('加载所有月份数据失败:', error)
-    }
-}
-
-// 计算单个项目的累计收入
-const calculateAccumulated = (itemId: number, itemCategory: string) => {
-    let total = 0
-    const currentPeriod = period.value
-    
-    // 累加历史月份数据
-    for (const monthData of allMonthsData.value) {
-        if (monthData.period === currentPeriod) continue
-        
-        const item = monthData.data.find((d: any) => d.id === itemId || d.category === itemCategory)
-        if (item && item.currentMonthIncome) {
-            const value = parseFloat(item.currentMonthIncome.toString()) || 0
-            total += value
-        }
-    }
-    
-    // 加上当前月份的输入值
-    const currentItem = incomeData.value.find(d => d.id === itemId)
-    if (currentItem && currentItem.currentMonthIncome) {
-        const currentValue = parseFloat(currentItem.currentMonthIncome.toString()) || 0
-        total += currentValue
-    }
-    
-    return total
-}
-
-// 更新累计收入数据
-const updateAccumulatedIncome = () => {
-    incomeData.value.forEach(item => {
-        item.accumulatedIncome = calculateAccumulated(item.id, item.category)
-    })
 }
 
 // 计算合计数据
@@ -228,41 +164,37 @@ const mergeData = (templateData: IncomeItem[], loadedData: any[]): IncomeItem[] 
 const loadData = async (targetPeriod: string) => {
     try {
         console.log(`正在加载营业收入结构数据，期间: ${targetPeriod}`)
-        
+
         const response = await fetch(`http://47.111.95.19:3000/business-income/${targetPeriod}`)
         if (!response.ok) {
             if (response.status === 404) {
                 console.log('该期间暂无数据，使用初始模板')
                 incomeData.value = getInitialData()
-                // 加载所有月份数据并计算累计收入
-                await loadAllMonthsData(targetPeriod)
-                updateAccumulatedIncome()
                 return
             }
             throw new Error('加载数据失败')
         }
-        
+
         const result = await response.json()
         console.log('API返回数据:', result)
-        
+
         if (result.success && result.data && Array.isArray(result.data)) {
-            console.log('成功获取数据，开始合并...')
-            incomeData.value = mergeData(getInitialData(), result.data)
-            console.log('合并后的数据:', incomeData.value)
+            console.log('成功获取数据，直接使用后端计算的结果')
+            incomeData.value = result.data.map((item: any) => ({
+                id: item.id,
+                category: item.category,
+                yearlyPlan: item.id === 1 ? 59400 : 600, // 写死年度计划：主营业务59400，非主营业务600
+                currentMonthIncome: item.currentMonthIncome || 0,
+                accumulatedIncome: item.accumulatedIncome || 0
+            }))
+            console.log('处理后的数据:', incomeData.value)
+        } else {
+            console.log('数据格式不正确，使用初始模板')
+            incomeData.value = getInitialData()
         }
-        
-        // 加载所有月份数据并计算累计收入
-        await loadAllMonthsData(targetPeriod)
-        updateAccumulatedIncome()
     } catch (error) {
         console.error('加载数据失败:', error)
-        // 即使出错也要尝试加载历史数据
-        try {
-            await loadAllMonthsData(targetPeriod)
-            updateAccumulatedIncome()
-        } catch (historyError) {
-            console.error('加载历史数据失败:', historyError)
-        }
+        incomeData.value = getInitialData()
     }
 }
 
