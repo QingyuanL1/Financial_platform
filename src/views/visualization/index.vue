@@ -144,7 +144,7 @@
       <!-- 数据分析入口 -->
       <div class="bg-white p-6 rounded-lg shadow-sm mb-8">
         <h3 class="text-lg font-semibold text-gray-900 mb-4">数据分析中心</h3>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <div class="bg-white p-6 rounded-lg border border-gray-200 hover:border-blue-400 hover:shadow-sm transition-all relative">
             <div class="flex items-center justify-between mb-4">
               <div class="p-2 bg-blue-100 rounded-md">
@@ -281,6 +281,68 @@
               质量情况
             </router-link>
           </div>
+
+          <!-- 边际贡献率卡片 -->
+          <ContributionRateCard />
+
+          <!-- 毛利率卡片 -->
+          <ProfitMarginCard />
+
+          <!-- 净利率分析卡片 -->
+          <div class="bg-white p-6 rounded-lg border border-gray-200 hover:border-blue-400 hover:shadow-sm transition-all relative">
+            <div class="flex items-center justify-between mb-4">
+              <div class="p-2 bg-blue-100 rounded-md">
+                <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                </svg>
+              </div>
+              <div class="text-right">
+                <div class="text-sm font-semibold text-blue-600">{{ netProfitMarginRate }}%</div>
+                <div class="text-xs text-gray-500">净利率</div>
+              </div>
+            </div>
+            <h4 class="text-lg font-medium text-gray-900 mb-2">净利率分析</h4>
+            <p class="text-sm text-gray-600 mb-3 h-12">分析净利润率趋势与变化情况</p>
+            <div class="mb-4">
+              <div style="width: 100%; height: 8px; background-color: #e5e7eb; border-radius: 4px;">
+                <div 
+                  style="height: 8px; border-radius: 4px; background-color: #2563eb; transition: width 0.3s ease;"
+                  :style="`width: ${Math.min(Math.max(netProfitMarginRate / 6.85 * 100, 3), 100)}%;`"
+                ></div>
+              </div>
+            </div>
+            <router-link to="/analytics/net-profit-margin-chart" class="block w-full text-center py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors" @click="handleNavigation">
+              质量情况
+            </router-link>
+          </div>
+
+          <!-- 资产负债率分析卡片 -->
+          <div class="bg-white p-6 rounded-lg border border-gray-200 hover:border-blue-400 hover:shadow-sm transition-all relative">
+            <div class="flex items-center justify-between mb-4">
+              <div class="p-2 bg-blue-100 rounded-md">
+                <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h3m0 0v-3m0 3h3m-6 0h6m-6-3v3"></path>
+                </svg>
+              </div>
+              <div class="text-right">
+                <div class="text-sm font-semibold text-blue-600">{{ assetLiabilityRatio }}%</div>
+                <div class="text-xs text-gray-500">资产负债率</div>
+              </div>
+            </div>
+            <h4 class="text-lg font-medium text-gray-900 mb-2">资产负债率分析</h4>
+            <p class="text-sm text-gray-600 mb-3 h-12">分析资产负债率趋势与风险控制</p>
+            <div class="mb-4">
+              <div style="width: 100%; height: 8px; background-color: #e5e7eb; border-radius: 4px;">
+                <div 
+                  style="height: 8px; border-radius: 4px; background-color: #2563eb; transition: width 0.3s ease;"
+                  :style="`width: ${Math.min(Math.max(assetLiabilityRatio / 74 * 100, 3), 100)}%;`"
+                ></div>
+              </div>
+            </div>
+            <router-link to="/analytics/asset-liability-ratio-chart" class="block w-full text-center py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors" @click="handleNavigation">
+              质量情况
+            </router-link>
+          </div>
         </div>
       </div>
 
@@ -348,7 +410,7 @@
               <span class="text-sm font-bold text-blue-600">{{ category.completion_rate }}%</span>
             </div>
             <div class="w-full bg-gray-200 rounded-full h-2 mb-2">
-              <div class="bg-blue-600 h-2 rounded-full" 
+              <div class="bg-blue-600 h-2 rounded-full"
                    :style="`width: ${category.completion_rate}%`"></div>
             </div>
             <p class="text-sm text-gray-600">
@@ -356,6 +418,20 @@
             </p>
           </div>
         </div>
+      </div>
+
+      <!-- 边际贡献率详细分析 -->
+      <div class="bg-white p-6 rounded-lg shadow-sm mb-8">
+        <div class="flex items-center justify-between mb-6">
+          <h3 class="text-lg font-semibold text-gray-900">边际贡献率详细分析</h3>
+          <router-link
+            to="/analytics/contribution-rate-chart"
+            class="text-blue-600 hover:text-blue-700 text-sm font-medium transition-colors"
+          >
+            查看详细分析 →
+          </router-link>
+        </div>
+        <ContributionRateChart />
       </div>
 
     </div>
@@ -414,6 +490,9 @@ import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import * as echarts from 'echarts'
 import storage from 'store'
+import ContributionRateCard from '@/views/analytics/ContributionRateCard.vue'
+import ContributionRateChart from '@/views/analytics/ContributionRateChart.vue'
+import ProfitMarginCard from '@/views/analytics/ProfitMarginCard.vue'
 
 interface DashboardData {
   user: {
@@ -494,6 +573,12 @@ const roeData = ref<ROEData>({
   year: new Date().getFullYear(),
   lastUpdated: ''
 })
+
+// 净利率数据
+const netProfitMarginRate = ref(0)
+
+// 资产负债率数据
+const assetLiabilityRatio = ref(0)
 
 // 公告详情相关
 const showAnnouncementDetail = ref(false)
@@ -768,6 +853,52 @@ const fetchROEData = async () => {
       year: new Date().getFullYear(),
       lastUpdated: new Date().toISOString()
     }
+  }
+}
+
+// 获取净利率数据
+const fetchNetProfitMarginData = async () => {
+  try {
+    const currentYear = new Date().getFullYear()
+    const response = await fetch(`http://47.111.95.19:3000/analytics/net-profit-margin/${currentYear}`)
+    
+    if (!response.ok) {
+      throw new Error('获取净利率数据失败')
+    }
+    
+    const result = await response.json()
+    if (result.success && result.data) {
+      netProfitMarginRate.value = result.data.currentRate || 0
+    } else {
+      console.warn('净利率数据获取失败:', result.message)
+      netProfitMarginRate.value = 0
+    }
+  } catch (error) {
+    console.error('获取净利率数据失败:', error)
+    netProfitMarginRate.value = 0
+  }
+}
+
+// 获取资产负债率数据
+const fetchAssetLiabilityRatioData = async () => {
+  try {
+    const currentYear = new Date().getFullYear()
+    const response = await fetch(`http://47.111.95.19:3000/analytics/asset-liability-ratio/${currentYear}`)
+    
+    if (!response.ok) {
+      throw new Error('获取资产负债率数据失败')
+    }
+    
+    const result = await response.json()
+    if (result.success && result.data) {
+      assetLiabilityRatio.value = result.data.currentRate || 0
+    } else {
+      console.warn('资产负债率数据获取失败:', result.message)
+      assetLiabilityRatio.value = 0
+    }
+  } catch (error) {
+    console.error('获取资产负债率数据失败:', error)
+    assetLiabilityRatio.value = 0
   }
 }
 
@@ -1064,7 +1195,9 @@ onMounted(async () => {
     fetchAnnouncements(),
     fetchAvailableYears(),
     fetchAnalysisCompletionRates(),
-    fetchROEData()
+    fetchROEData(),
+    fetchNetProfitMarginData(),
+    fetchAssetLiabilityRatioData()
   ])
   
   // 先获取图表数据，再初始化图表

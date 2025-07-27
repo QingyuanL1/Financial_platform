@@ -24,7 +24,7 @@
                 <tbody>
                     <!-- 设备板块 -->
                     <tr>
-                        <td class="border border-gray-300 px-4 py-2" rowspan="4">设备</td>
+                        <td class="border border-gray-300 px-4 py-2" rowspan="8">设备</td>
                         <td class="border border-gray-300 px-4 py-2">上海</td>
                         <td class="border border-gray-300 px-4 py-2">
                             <input v-model="data.equipment.shanghai.plan" type="text" class="w-full px-2 py-1 border rounded bg-gray-50" readonly />
@@ -72,55 +72,52 @@
                             <input v-model="data.equipment.power.difference" type="text" class="w-full px-2 py-1 border rounded bg-gray-50" readonly />
                         </td>
                     </tr>
-                    
-                    <!-- 自动化板块 -->
                     <tr>
-                        <td class="border border-gray-300 px-4 py-2" rowspan="4">自动化</td>
                         <td class="border border-gray-300 px-4 py-2">西门子</td>
                         <td class="border border-gray-300 px-4 py-2">
-                            <input v-model="data.automation.siemens.plan" type="text" class="w-full px-2 py-1 border rounded bg-gray-50" readonly />
+                            <input v-model="data.equipment.siemens.plan" type="text" class="w-full px-2 py-1 border rounded bg-gray-50" readonly />
                         </td>
                         <td class="border border-gray-300 px-4 py-2">
-                            <input v-model="data.automation.siemens.actual" type="text" class="w-full px-2 py-1 border rounded" @input="calculateDifference('automation', 'siemens')" />
+                            <input v-model="data.equipment.siemens.actual" type="text" class="w-full px-2 py-1 border rounded" @input="calculateDifference('equipment', 'siemens')" />
                         </td>
                         <td class="border border-gray-300 px-4 py-2">
-                            <input v-model="data.automation.siemens.difference" type="text" class="w-full px-2 py-1 border rounded bg-gray-50" readonly />
+                            <input v-model="data.equipment.siemens.difference" type="text" class="w-full px-2 py-1 border rounded bg-gray-50" readonly />
                         </td>
                     </tr>
                     <tr>
                         <td class="border border-gray-300 px-4 py-2">同业</td>
                         <td class="border border-gray-300 px-4 py-2">
-                            <input v-model="data.automation.peers.plan" type="text" class="w-full px-2 py-1 border rounded bg-gray-50" readonly />
+                            <input v-model="data.equipment.peers.plan" type="text" class="w-full px-2 py-1 border rounded bg-gray-50" readonly />
                         </td>
                         <td class="border border-gray-300 px-4 py-2">
-                            <input v-model="data.automation.peers.actual" type="text" class="w-full px-2 py-1 border rounded" @input="calculateDifference('automation', 'peers')" />
+                            <input v-model="data.equipment.peers.actual" type="text" class="w-full px-2 py-1 border rounded" @input="calculateDifference('equipment', 'peers')" />
                         </td>
                         <td class="border border-gray-300 px-4 py-2">
-                            <input v-model="data.automation.peers.difference" type="text" class="w-full px-2 py-1 border rounded bg-gray-50" readonly />
+                            <input v-model="data.equipment.peers.difference" type="text" class="w-full px-2 py-1 border rounded bg-gray-50" readonly />
                         </td>
                     </tr>
                     <tr>
                         <td class="border border-gray-300 px-4 py-2">用户</td>
                         <td class="border border-gray-300 px-4 py-2">
-                            <input v-model="data.automation.users.plan" type="text" class="w-full px-2 py-1 border rounded bg-gray-50" readonly />
+                            <input v-model="data.equipment.users.plan" type="text" class="w-full px-2 py-1 border rounded bg-gray-50" readonly />
                         </td>
                         <td class="border border-gray-300 px-4 py-2">
-                            <input v-model="data.automation.users.actual" type="text" class="w-full px-2 py-1 border rounded" @input="calculateDifference('automation', 'users')" />
+                            <input v-model="data.equipment.users.actual" type="text" class="w-full px-2 py-1 border rounded" @input="calculateDifference('equipment', 'users')" />
                         </td>
                         <td class="border border-gray-300 px-4 py-2">
-                            <input v-model="data.automation.users.difference" type="text" class="w-full px-2 py-1 border rounded bg-gray-50" readonly />
+                            <input v-model="data.equipment.users.difference" type="text" class="w-full px-2 py-1 border rounded bg-gray-50" readonly />
                         </td>
                     </tr>
                     <tr>
                         <td class="border border-gray-300 px-4 py-2">其它</td>
                         <td class="border border-gray-300 px-4 py-2">
-                            <input v-model="data.automation.others.plan" type="text" class="w-full px-2 py-1 border rounded bg-gray-50" readonly />
+                            <input v-model="data.equipment.others.plan" type="text" class="w-full px-2 py-1 border rounded bg-gray-50" readonly />
                         </td>
                         <td class="border border-gray-300 px-4 py-2">
-                            <input v-model="data.automation.others.actual" type="text" class="w-full px-2 py-1 border rounded" @input="calculateDifference('automation', 'others')" />
+                            <input v-model="data.equipment.others.actual" type="text" class="w-full px-2 py-1 border rounded" @input="calculateDifference('equipment', 'others')" />
                         </td>
                         <td class="border border-gray-300 px-4 py-2">
-                            <input v-model="data.automation.others.difference" type="text" class="w-full px-2 py-1 border rounded bg-gray-50" readonly />
+                            <input v-model="data.equipment.others.difference" type="text" class="w-full px-2 py-1 border rounded bg-gray-50" readonly />
                         </td>
                     </tr>
                     
@@ -262,9 +259,7 @@ const getInitialData = () => {
             shanghai: { plan: '28.00%', actual: '0%', difference: '0%' },
             national: { plan: '18.50%', actual: '0%', difference: '0%' },
             jiangsu: { plan: '12.00%', actual: '0%', difference: '0%' },
-            power: { plan: '/', actual: '0%', difference: '0%' }
-        },
-        automation: {
+            power: { plan: '/', actual: '0%', difference: '0%' },
             siemens: { plan: '/', actual: '0%', difference: '0%' },
             peers: { plan: '30.00%', actual: '0%', difference: '0%' },
             users: { plan: '15.80%', actual: '0%', difference: '0%' },
@@ -287,14 +282,31 @@ const getInitialData = () => {
 // 数据合并函数，保护年度计划静态数据
 const mergeData = (defaultData: any, savedData: any) => {
     const merged = JSON.parse(JSON.stringify(defaultData))
-    
+
     if (savedData) {
         console.log('开始合并数据:', { defaultData, savedData })
+
+        // 如果savedData中有automation数据，需要迁移到equipment中
+        if (savedData.automation) {
+            console.log('检测到automation数据，迁移到equipment中')
+            if (!savedData.equipment) {
+                savedData.equipment = {}
+            }
+            // 将automation的数据迁移到equipment中
+            Object.keys(savedData.automation).forEach(key => {
+                if (savedData.automation[key] && typeof savedData.automation[key] === 'object') {
+                    savedData.equipment[key] = savedData.automation[key]
+                }
+            })
+            // 删除automation数据
+            delete savedData.automation
+        }
+
         // 深度合并对象数据，但跳过plan和difference字段
         Object.keys(merged).forEach(category => {
             if (savedData[category]) {
                 console.log(`合并类别: ${category}`)
-                
+
                 if (category === 'total') {
                     // total是直接包含plan/actual/difference的对象
                     console.log(`合并total对象:`, savedData[category])
@@ -318,7 +330,7 @@ const mergeData = (defaultData: any, savedData: any) => {
         })
         console.log('合并完成:', merged)
     }
-    
+
     return merged
 }
 
@@ -356,28 +368,26 @@ const calculateDifference = (segment: string, item: string) => {
 
 // 重新计算所有偏差
 const recalculateAllDifferences = () => {
-    // 设备板块
+    // 设备板块（包含原自动化项目）
     calculateDifference('equipment', 'shanghai')
     calculateDifference('equipment', 'national')
     calculateDifference('equipment', 'jiangsu')
     calculateDifference('equipment', 'power')
-    
-    // 自动化板块
-    calculateDifference('automation', 'siemens')
-    calculateDifference('automation', 'peers')
-    calculateDifference('automation', 'users')
-    calculateDifference('automation', 'others')
-    
+    calculateDifference('equipment', 'siemens')
+    calculateDifference('equipment', 'peers')
+    calculateDifference('equipment', 'users')
+    calculateDifference('equipment', 'others')
+
     // 元件板块
     calculateDifference('components', 'users')
-    
+
     // 工程板块
     calculateDifference('engineering', 'package1')
     calculateDifference('engineering', 'package2')
     calculateDifference('engineering', 'domestic')
     calculateDifference('engineering', 'international')
     calculateDifference('engineering', 'others')
-    
+
     // 合计
     calculateDifference('total', '')
 }

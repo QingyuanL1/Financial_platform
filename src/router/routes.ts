@@ -945,6 +945,38 @@ export const frameIn: Array<RouteRecordRaw> = [
           title: '净资产收益率分析',
         },
       },
+      {
+        path: 'analytics/contribution-rate-chart',
+        name: 'ContributionRateChart',
+        component: () => import('@/views/analytics/ContributionRateChart.vue'),
+        meta: {
+          title: '边际贡献率分析',
+        },
+      },
+      {
+        path: 'analytics/profit-margin-chart',
+        name: 'ProfitMarginChart',
+        component: () => import('@/views/analytics/ProfitMarginChart.vue'),
+        meta: {
+          title: '毛利率分析',
+        },
+      },
+      {
+        path: 'analytics/net-profit-margin-chart',
+        name: 'NetProfitMarginChart',
+        component: () => import('@/views/analytics/NetProfitMarginChart.vue'),
+        meta: {
+          title: '净利率分析',
+        },
+      },
+      {
+        path: 'analytics/asset-liability-ratio-chart',
+        name: 'AssetLiabilityRatioChart',
+        component: () => import('@/views/analytics/AssetLiabilityRatioChart.vue'),
+        meta: {
+          title: '资产负债率分析',
+        },
+      },
     ],
   },
 ];

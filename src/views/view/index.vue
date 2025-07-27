@@ -232,6 +232,7 @@ interface Module {
   route_path: string
   description: string
   permission_type: 'read' | 'write'
+  display_order?: number
 }
 
 interface CategorizedModule {
@@ -292,7 +293,15 @@ const categorizedModules = computed(() => {
   categoryMap.forEach((moduleList, categoryName) => {
     result.push({
       name: categoryName,
-      modules: moduleList.sort((a, b) => a.module_name.localeCompare(b.module_name))
+      modules: moduleList.sort((a, b) => {
+        // 首先按display_order排序，如果没有display_order或为0，则按名称排序
+        const aOrder = (a as any).display_order || 999
+        const bOrder = (b as any).display_order || 999
+        if (aOrder !== bOrder) {
+          return aOrder - bOrder
+        }
+        return a.module_name.localeCompare(b.module_name)
+      })
     })
   })
   
