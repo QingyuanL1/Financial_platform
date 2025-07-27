@@ -293,7 +293,7 @@
             <div class="flex items-center justify-between mb-4">
               <div class="p-2 bg-blue-100 rounded-md">
                 <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 01 2-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
                 </svg>
               </div>
               <div class="text-right">
@@ -340,6 +340,34 @@
               </div>
             </div>
             <router-link to="/analytics/asset-liability-ratio-chart" class="block w-full text-center py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors" @click="handleNavigation">
+              质量情况
+            </router-link>
+          </div>
+
+          <!-- 存量指标分析卡片 -->
+          <div class="bg-white p-6 rounded-lg border border-gray-200 hover:border-blue-400 hover:shadow-sm transition-all relative">
+            <div class="flex items-center justify-between mb-4">
+              <div class="p-2 bg-blue-100 rounded-md">
+                <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                </svg>
+              </div>
+              <div class="text-right">
+                <div class="text-sm font-semibold text-blue-600">{{ inventoryMetricsTotal }}万</div>
+                <div class="text-xs text-gray-500">存量总计</div>
+              </div>
+            </div>
+            <h4 class="text-lg font-medium text-gray-900 mb-2">存量指标分析</h4>
+            <p class="text-sm text-gray-600 mb-3 h-12">分析预中标+在产+库存综合情况</p>
+            <div class="mb-4">
+              <div style="width: 100%; height: 8px; background-color: #e5e7eb; border-radius: 4px;">
+                <div 
+                  style="height: 8px; border-radius: 4px; background-color: #2563eb; transition: width 0.3s ease;"
+                  :style="`width: ${Math.min(Math.max(inventoryMetricsTotal / 100000 * 100, 3), 100)}%;`"
+                ></div>
+              </div>
+            </div>
+            <router-link to="/analytics/inventory-metrics-chart" class="block w-full text-center py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors" @click="handleNavigation">
               质量情况
             </router-link>
           </div>
@@ -420,18 +448,68 @@
         </div>
       </div>
 
-      <!-- 边际贡献率详细分析 -->
+
+      <!-- 存量指标构成分析 -->
       <div class="bg-white p-6 rounded-lg shadow-sm mb-8">
         <div class="flex items-center justify-between mb-6">
-          <h3 class="text-lg font-semibold text-gray-900">边际贡献率详细分析</h3>
+          <h3 class="text-lg font-semibold text-gray-900">存量指标构成分析</h3>
           <router-link
-            to="/analytics/contribution-rate-chart"
+            to="/analytics/inventory-metrics-chart"
             class="text-blue-600 hover:text-blue-700 text-sm font-medium transition-colors"
           >
             查看详细分析 →
           </router-link>
         </div>
-        <ContributionRateChart />
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <!-- 扇形图 -->
+          <div class="h-[300px]" ref="inventoryPieChartRef"></div>
+          
+          <!-- 构成详情 -->
+          <div class="space-y-4">
+            <h4 class="font-medium text-gray-900">当前存量构成</h4>
+            <div class="space-y-3">
+              <div class="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
+                <div class="flex items-center">
+                  <div class="w-4 h-4 bg-green-500 rounded mr-3"></div>
+                  <span class="font-medium text-gray-900">预中标</span>
+                </div>
+                <div class="text-right">
+                  <div class="font-semibold text-gray-900">{{ formatNumber(inventoryComposition.preBid) }}万元</div>
+                  <div class="text-sm text-gray-600">{{ inventoryComposition.preBidPercentage }}%</div>
+                </div>
+              </div>
+              
+              <div class="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
+                <div class="flex items-center">
+                  <div class="w-4 h-4 bg-blue-500 rounded mr-3"></div>
+                  <span class="font-medium text-gray-900">在产</span>
+                </div>
+                <div class="text-right">
+                  <div class="font-semibold text-gray-900">{{ formatNumber(inventoryComposition.inProgress) }}万元</div>
+                  <div class="text-sm text-gray-600">{{ inventoryComposition.inProgressPercentage }}%</div>
+                </div>
+              </div>
+              
+              <div class="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
+                <div class="flex items-center">
+                  <div class="w-4 h-4 bg-purple-500 rounded mr-3"></div>
+                  <span class="font-medium text-gray-900">库存</span>
+                </div>
+                <div class="text-right">
+                  <div class="font-semibold text-gray-900">{{ formatNumber(inventoryComposition.inventory) }}万元</div>
+                  <div class="text-sm text-gray-600">{{ inventoryComposition.inventoryPercentage }}%</div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="pt-3 border-t border-gray-200">
+              <div class="flex items-center justify-between">
+                <span class="font-semibold text-gray-900">总计</span>
+                <span class="text-xl font-bold text-blue-600">{{ formatNumber(inventoryComposition.total) }}万元</span>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
     </div>
@@ -491,7 +569,6 @@ import { useUserStore } from '@/stores/user'
 import * as echarts from 'echarts'
 import storage from 'store'
 import ContributionRateCard from '@/views/analytics/ContributionRateCard.vue'
-import ContributionRateChart from '@/views/analytics/ContributionRateChart.vue'
 import ProfitMarginCard from '@/views/analytics/ProfitMarginCard.vue'
 
 interface DashboardData {
@@ -580,6 +657,18 @@ const netProfitMarginRate = ref(0)
 // 资产负债率数据
 const assetLiabilityRatio = ref(0)
 
+// 存量指标数据
+const inventoryMetricsTotal = ref(0)
+const inventoryComposition = ref({
+  preBid: 0,
+  inProgress: 0,
+  inventory: 0,
+  total: 0,
+  preBidPercentage: 0,
+  inProgressPercentage: 0,
+  inventoryPercentage: 0
+})
+
 // 公告详情相关
 const showAnnouncementDetail = ref(false)
 const selectedAnnouncement = ref<Announcement | null>(null)
@@ -589,10 +678,12 @@ const loadingAnnouncements = ref(false)
 // 图表相关变量
 const revenueChartRef = ref<HTMLElement | null>(null)
 const profitChartRef = ref<HTMLElement | null>(null)
+const inventoryPieChartRef = ref<HTMLElement | null>(null)
 const selectedYear = ref(new Date().getFullYear().toString())
 const availableYears = ref<string[]>([])
 const revenueChartInstance = ref<echarts.ECharts | null>(null)
 const profitChartInstance = ref<echarts.ECharts | null>(null)
+const inventoryPieChartInstance = ref<echarts.ECharts | null>(null)
 const chartData = ref<ChartDataType>({
   periods: [],
   mainBusinessRevenue: [],
@@ -902,6 +993,50 @@ const fetchAssetLiabilityRatioData = async () => {
   }
 }
 
+// 获取存量指标数据
+const fetchInventoryMetricsData = async () => {
+  try {
+    const currentYear = new Date().getFullYear()
+    const response = await fetch(`http://47.111.95.19:3000/analytics/inventory-metrics/${currentYear}`)
+    
+    if (!response.ok) {
+      throw new Error('获取存量指标数据失败')
+    }
+    
+    const result = await response.json()
+    if (result.success && result.data) {
+      inventoryMetricsTotal.value = result.data.currentTotal || 0
+      
+      // 更新构成数据
+      const compositionData = result.data.compositionData || []
+      if (compositionData.length > 0) {
+        const preBidData = compositionData.find((item: any) => item.name === '预中标') || { value: 0, percentage: 0 }
+        const inProgressData = compositionData.find((item: any) => item.name === '在产') || { value: 0, percentage: 0 }
+        const inventoryData = compositionData.find((item: any) => item.name === '库存') || { value: 0, percentage: 0 }
+        
+        inventoryComposition.value = {
+          preBid: preBidData.value,
+          inProgress: inProgressData.value,
+          inventory: inventoryData.value,
+          total: result.data.currentTotal || 0,
+          preBidPercentage: preBidData.percentage,
+          inProgressPercentage: inProgressData.percentage,
+          inventoryPercentage: inventoryData.percentage
+        }
+      }
+      
+      // 初始化扇形图
+      initInventoryPieChart()
+    } else {
+      console.warn('存量指标数据获取失败:', result.message)
+      inventoryMetricsTotal.value = 0
+    }
+  } catch (error) {
+    console.error('获取存量指标数据失败:', error)
+    inventoryMetricsTotal.value = 0
+  }
+}
+
 // 显示ROE详情
 const showROEDetail = () => {
   alert(`净资产收益率详情：
@@ -931,6 +1066,100 @@ const getCompanyTitle = () => {
 const initCharts = () => {
   initRevenueChart()
   initProfitChart()
+}
+
+// 初始化存量指标扇形图
+const initInventoryPieChart = () => {
+  if (!inventoryPieChartRef.value) return
+  
+  if (inventoryPieChartInstance.value) {
+    inventoryPieChartInstance.value.dispose()
+  }
+  
+  inventoryPieChartInstance.value = echarts.init(inventoryPieChartRef.value)
+  updateInventoryPieChart()
+}
+
+// 更新存量指标扇形图
+const updateInventoryPieChart = () => {
+  if (!inventoryPieChartInstance.value) return
+
+  // 如果没有数据，显示暂无数据
+  if (inventoryComposition.value.total === 0) {
+    const option = {
+      title: {
+        text: '暂无存量数据',
+        textStyle: {
+          fontSize: 14,
+          color: '#9CA3AF'
+        },
+        left: 'center',
+        top: 'middle'
+      }
+    }
+    inventoryPieChartInstance.value.setOption(option, true)
+    return
+  }
+
+  const pieData = [
+    {
+      name: '预中标',
+      value: inventoryComposition.value.preBid,
+      itemStyle: { color: '#10B981' }
+    },
+    {
+      name: '在产',
+      value: inventoryComposition.value.inProgress,
+      itemStyle: { color: '#3B82F6' }
+    },
+    {
+      name: '库存',
+      value: inventoryComposition.value.inventory,
+      itemStyle: { color: '#8B5CF6' }
+    }
+  ].filter(item => item.value > 0) // 只显示有数据的项
+
+  const option = {
+    title: {
+      text: '存量构成分布',
+      textStyle: {
+        fontSize: 14,
+        fontWeight: 'bold',
+        color: '#374151'
+      },
+      left: 'center',
+      top: 10
+    },
+    tooltip: {
+      trigger: 'item',
+      formatter: function(params: any) {
+        return `${params.name}<br/>金额: ${formatNumber(params.value)}万元<br/>占比: ${params.percent}%`
+      }
+    },
+    series: [
+      {
+        type: 'pie',
+        radius: ['40%', '70%'],
+        center: ['50%', '60%'],
+        avoidLabelOverlap: false,
+        label: {
+          show: true,
+          formatter: '{b}: {d}%',
+          fontSize: 12
+        },
+        emphasis: {
+          label: {
+            show: true,
+            fontSize: 14,
+            fontWeight: 'bold'
+          }
+        },
+        data: pieData
+      }
+    ]
+  }
+
+  inventoryPieChartInstance.value.setOption(option, true)
 }
 
 const initRevenueChart = () => {
@@ -1187,6 +1416,10 @@ const handleResize = () => {
   if (profitChartInstance.value) {
     profitChartInstance.value.resize()
   }
+  
+  if (inventoryPieChartInstance.value) {
+    inventoryPieChartInstance.value.resize()
+  }
 }
 
 onMounted(async () => {
@@ -1197,7 +1430,8 @@ onMounted(async () => {
     fetchAnalysisCompletionRates(),
     fetchROEData(),
     fetchNetProfitMarginData(),
-    fetchAssetLiabilityRatioData()
+    fetchAssetLiabilityRatioData(),
+    fetchInventoryMetricsData()
   ])
   
   // 先获取图表数据，再初始化图表
@@ -1218,6 +1452,10 @@ onUnmounted(() => {
   
   if (profitChartInstance.value) {
     profitChartInstance.value.dispose()
+  }
+  
+  if (inventoryPieChartInstance.value) {
+    inventoryPieChartInstance.value.dispose()
   }
   
   window.removeEventListener('resize', handleResize)

@@ -977,6 +977,14 @@ export const frameIn: Array<RouteRecordRaw> = [
           title: '资产负债率分析',
         },
       },
+      {
+        path: 'analytics/inventory-metrics-chart',
+        name: 'InventoryMetricsChart',
+        component: () => import('@/views/analytics/InventoryMetricsChart.vue'),
+        meta: {
+          title: '存量指标分析',
+        },
+      },
     ],
   },
 ];
