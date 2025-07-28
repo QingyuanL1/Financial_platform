@@ -8,7 +8,7 @@ const whiteList = ['/user/login', '/user/register'] // 不重定向白名单
 
 router.beforeEach(async (to, from, next) => {
   NProgress.start()
-  
+
   const token = localStorage.getItem('token') || storage.get('ACCESS_TOKEN')
   const userStore = useUserStore()
 
@@ -21,7 +21,7 @@ router.beforeEach(async (to, from, next) => {
         console.log('从storage恢复用户信息:', storedUserInfo)
       }
     }
-    
+
     if (whiteList.includes(to.path)) {
       // 已登录状态下访问登录/注册页面，重定向到首页
       next({ path: '/' })

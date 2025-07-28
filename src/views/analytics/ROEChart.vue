@@ -133,7 +133,7 @@ const fetchROEData = async () => {
         
         // 计算汇总数据
         const latestROE = result.data.monthlyData?.roe && result.data.monthlyData.roe.length > 0 ? 
-          result.data.monthlyData.roe[result.data.monthlyData.roe.length - 1] : 0;
+          result.data.monthlyData.roe[result.data.monthlyData.roe.length - 1] / 1000 : 0;
         
         summary.value = {
           currentROE: latestROE,
@@ -169,7 +169,7 @@ const updateTrendChart = () => {
   try {
     // 准备数据 - 只显示真实数据
     const monthsData = months.value || [];
-    const roeData = (monthlyData.value && monthlyData.value.roe) ? monthlyData.value.roe : [];
+    const roeData = (monthlyData.value && monthlyData.value.roe) ? monthlyData.value.roe.map((value: number) => value / 1000) : [];
     
     // 检查是否有数据
     const hasData = monthsData.length > 0 && roeData.length > 0

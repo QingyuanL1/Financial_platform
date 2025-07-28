@@ -985,6 +985,15 @@ export const frameIn: Array<RouteRecordRaw> = [
           title: '存量指标分析',
         },
       },
+      // ==================== 数据分析中心 ====================
+      {
+        path: 'analytics',
+        name: 'AnalyticsCenter',
+        component: () => import('@/views/analytics/index.vue'),
+        meta: {
+          title: '数据分析中心',
+        },
+      },
     ],
   },
 ];

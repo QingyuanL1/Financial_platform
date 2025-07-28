@@ -48,6 +48,16 @@
                                 <span class="ml-2">年度预算计划</span>
                             </router-link>
                         </li>
+                        <li v-if="canAccessAnalytics">
+                            <router-link to="/analytics"
+                                class="flex items-center px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition-colors"
+                                :class="{ 'bg-blue-50 text-blue-600': currentRoute === '/analytics' || currentRoute.startsWith('/analytics/') }">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                                </svg>
+                                <span class="ml-2">数据分析中心</span>
+                            </router-link>
+                        </li>
                         <li v-if="isAdmin">
                             <router-link to="/admin/users"
                                 class="flex items-center px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition-colors"
@@ -129,7 +139,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import storage from 'store'
@@ -139,6 +149,9 @@ const router = useRouter()
 const userStore = useUserStore()
 const currentRoute = computed(() => route.path)
 
+// 用户权限信息
+const userPermissions = ref<any>(null)
+
 // Check if current user has admin privileges
 const isAdmin = computed(() => {
     const userInfo = userStore.userInfo
@@ -146,8 +159,47 @@ const isAdmin = computed(() => {
     return userInfo.role_name === 'super_admin' || userInfo.role_name === 'admin'
 })
 
+// Check if current user can access analytics center
+const canAccessAnalytics = computed(() => {
+    const userInfo = userStore.userInfo
+    if (!userInfo) return false
+
+    // 管理员可以访问所有功能
+    if (userInfo.role_name === 'super_admin' || userInfo.role_name === 'admin') {
+        return true
+    }
+
+    // 检查用户是否有数据分析中心的权限
+    if (userPermissions.value && userPermissions.value.accessible_modules) {
+        return userPermissions.value.accessible_modules.some((module: any) =>
+            module.module_key === 'analytics_center'
+        )
+    }
+
+    return false
+})
+
+// 获取用户权限信息
+const fetchUserPermissions = async () => {
+    const userInfo = userStore.userInfo
+    if (!userInfo) return
+
+    try {
+        const response = await fetch(`http://47.111.95.19:3000/permissions/user/${userInfo.id}`)
+        if (response.ok) {
+            const result = await response.json()
+            if (result.success) {
+                userPermissions.value = result.data
+                console.log('用户权限信息:', result.data)
+            }
+        }
+    } catch (error) {
+        console.error('获取用户权限失败:', error)
+    }
+}
+
 // Initialize user info from localStorage if store is empty
-onMounted(() => {
+onMounted(async () => {
     if (!userStore.userInfo) {
         const storedUserInfo = storage.get('USER_INFO')
         console.log(storedUserInfo)
@@ -156,6 +208,9 @@ onMounted(() => {
             userStore.setUserInfo(storedUserInfo)
         }
     }
+
+    // 获取用户权限信息
+    await fetchUserPermissions()
 })
 
 const handleLogout = () => {

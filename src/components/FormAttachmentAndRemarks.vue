@@ -36,6 +36,7 @@
                 <span class="ml-1">或拖拽文件到此处</span>
               </div>
               <p class="text-xs text-gray-500">支持格式：PDF、DOC、DOCX、XLS、XLSX、JPG、PNG、GIF、TXT</p>
+              <p class="text-xs text-blue-600 mt-1">请上传：{{ moduleTitle }}相关文件</p>
             </div>
           </div>
           
@@ -145,8 +146,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted } from 'vue'
-import { uploadFile, getFormAttachments, deleteFile } from '@/utils/formSubmissionHelper'
+import { ref, watch, onMounted, computed } from 'vue'
+import { uploadFile, getFormAttachments, deleteFile, getModuleTitle } from '@/utils/formSubmissionHelper'
 
 interface Props {
   moduleId: number
@@ -168,6 +169,9 @@ const uploading = ref(false)
 const attachments = ref<any[]>([])
 const fileInput = ref<HTMLInputElement | null>(null)
 
+// 计算模块标题
+const moduleTitle = computed(() => getModuleTitle(props.moduleId))
+
 // 文件处理函数
 const handleFileSelect = (event: Event) => {
   const target = event.target as HTMLInputElement
@@ -181,7 +185,7 @@ const uploadSelectedFile = async () => {
   
   uploading.value = true
   try {
-    await uploadFile(selectedFile.value, props.moduleId, props.period, `模块${props.moduleId}相关文件`)
+    await uploadFile(selectedFile.value, props.moduleId, props.period, `${moduleTitle.value}相关文件`)
     selectedFile.value = null
     if (fileInput.value) {
       fileInput.value.value = ''
