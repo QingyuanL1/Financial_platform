@@ -13,7 +13,7 @@
           <h3 class="text-lg font-semibold text-gray-900">数据年份选择</h3>
           <div class="flex items-center space-x-3">
             <span class="text-sm text-gray-600">选择年份:</span>
-            <select v-model="selectedYear" @change="fetchData" 
+            <select v-model="selectedYear" @change="fetchData"
                     class="px-3 py-1.5 text-sm border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">
               <option v-for="year in availableYears" :key="year" :value="year">{{ year }}年</option>
             </select>
@@ -56,11 +56,32 @@
           <div class="flex items-center space-x-4">
             <div class="flex items-center">
               <div class="w-4 h-4 bg-blue-500 rounded mr-2"></div>
-              <span class="text-sm text-gray-600">月度变化趋势</span>
+              <span class="text-sm text-gray-600">累计趋势</span>
             </div>
           </div>
         </div>
         <div class="h-[500px]" ref="chartRef"></div>
+      </div>
+
+      <!-- 当月数据柱状图 -->
+      <div class="bg-white rounded-lg shadow-sm p-6 mb-8">
+        <div class="flex justify-between items-center mb-6">
+          <h3 class="text-lg font-semibold text-gray-900">{{ selectedYear }}年当月实际数据对比分析</h3>
+          <div class="flex items-center space-x-6">
+            <div class="flex items-center">
+              <div class="w-4 h-4 bg-blue-500 rounded mr-2"></div>
+              <span class="text-sm text-gray-600">主营业务</span>
+            </div>
+            <div class="flex items-center">
+              <div class="w-4 h-4 bg-green-500 rounded mr-2"></div>
+              <span class="text-sm text-gray-600">非主营业务</span>
+            </div>
+            <div class="text-xs text-gray-500">
+              鼠标悬停查看详细数据和占比
+            </div>
+          </div>
+        </div>
+        <div class="h-[500px]" ref="monthlyChartRef"></div>
       </div>
 
       <!-- 分类占比图表 -->
@@ -102,10 +123,12 @@ const loading = ref(true)
 // 图表引用
 const chartRef = ref<HTMLElement | null>(null)
 const pieChartRef = ref<HTMLElement | null>(null)
+const monthlyChartRef = ref<HTMLElement | null>(null)
 
 // 图表实例
 const chartInstance = ref<echarts.ECharts | null>(null)
 const pieChartInstance = ref<echarts.ECharts | null>(null)
+const monthlyChartInstance = ref<echarts.ECharts | null>(null)
 
 // 数据
 const categories = {
@@ -115,6 +138,7 @@ const categories = {
 
 const months = ref<string[]>([])
 const monthlyData = ref<any>({})
+const monthlyCurrentData = ref<any>({})
 const summary = ref<any>({})
 const pieData = ref<any[]>([])
 
@@ -153,6 +177,7 @@ const fetchData = async () => {
     loading.value = true
     // 先获取营业收入数据，再基于summary生成饼图数据
     await fetchBusinessIncomeData()
+    await fetchMonthlyCurrentData()
     await fetchPieData()
     updateCharts()
   } catch (error) {
@@ -166,6 +191,7 @@ const fetchData = async () => {
 const resetDataToDefault = () => {
   months.value = []
   monthlyData.value = {}
+  monthlyCurrentData.value = {}
   summary.value = {}
   pieData.value = []
 }
@@ -179,13 +205,13 @@ const fetchBusinessIncomeData = async () => {
       if (result.success && result.data) {
         months.value = result.data.months || []
         monthlyData.value = result.data.monthlyData || {}
-        
+
         // 使用固定的年度计划值，但使用API返回的当期累计数据
         const hardcodedPlans = {
           main: 59400,
           nonMain: 600
         }
-        
+
         // 使用API返回的汇总数据，但覆盖年度计划值
         summary.value = {
           main: {
@@ -199,7 +225,7 @@ const fetchBusinessIncomeData = async () => {
             completion_rate: result.data.summary?.nonMain?.currentTotal ? Math.round((result.data.summary.nonMain.currentTotal / hardcodedPlans.nonMain) * 100) : 0
           }
         }
-        
+
         // 更新monthlyData中的yearlyPlan
         if (monthlyData.value.main) monthlyData.value.main.yearlyPlan = hardcodedPlans.main
         if (monthlyData.value.nonMain) monthlyData.value.nonMain.yearlyPlan = hardcodedPlans.nonMain
@@ -215,6 +241,26 @@ const fetchBusinessIncomeData = async () => {
     console.error('获取营业收入数据失败:', error)
     // 出错时重置为默认值
     resetDataToDefault()
+  }
+}
+
+// 获取当月营业收入数据
+const fetchMonthlyCurrentData = async () => {
+  try {
+    const response = await fetch(`http://47.111.95.19:3000/analytics/business-income-monthly/${selectedYear.value}`)
+    if (response.ok) {
+      const result = await response.json()
+      if (result.success && result.data) {
+        monthlyCurrentData.value = result.data.monthlyData || {}
+      } else {
+        monthlyCurrentData.value = {}
+      }
+    } else {
+      monthlyCurrentData.value = {}
+    }
+  } catch (error) {
+    console.error('获取当月营业收入数据失败:', error)
+    monthlyCurrentData.value = {}
   }
 }
 
@@ -256,11 +302,15 @@ const initCharts = () => {
   if (pieChartRef.value) {
     pieChartInstance.value = echarts.init(pieChartRef.value)
   }
+  if (monthlyChartRef.value) {
+    monthlyChartInstance.value = echarts.init(monthlyChartRef.value)
+  }
 }
 
 // 更新所有图表
 const updateCharts = () => {
   updateTrendChart()
+  updateMonthlyChart()
   updatePieChart()
 }
 
@@ -374,6 +424,137 @@ const updateTrendChart = () => {
   chartInstance.value.setOption(option, true)
 }
 
+// 更新当月数据柱状图
+const updateMonthlyChart = () => {
+  if (!monthlyChartInstance.value) return
+
+  const series: any[] = []
+
+  // 检查是否有数据
+  const hasData = months.value.length > 0 && Object.keys(monthlyCurrentData.value).length > 0
+
+  if (hasData) {
+    // 为每个类别创建并排柱状图
+    Object.keys(categories).forEach((key, index) => {
+      const categoryData = monthlyCurrentData.value[key]
+      const categoryInfo = categories[key as keyof typeof categories]
+
+      console.log(`处理类别 ${key}:`, categoryData) // 调试信息
+
+      if (categoryData && categoryData.currentMonth) {
+        console.log(`${categoryInfo.name} 数据:`, categoryData.currentMonth) // 调试信息
+        series.push({
+          name: `${categoryInfo.name}`,
+          type: 'bar',
+          data: categoryData.currentMonth,
+          itemStyle: {
+            color: categoryInfo.color
+          },
+          barWidth: '30%', // 设置柱子宽度
+          emphasis: {
+            focus: 'series'
+          }
+        })
+      }
+    })
+    console.log('最终series数据:', series) // 调试信息
+  }
+
+  const option = {
+    title: {
+      text: `${selectedYear.value}年当月实际收入对比分析`,
+      textStyle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: '#374151'
+      },
+      left: 'center',
+      top: 10
+    },
+    tooltip: {
+      trigger: 'axis',
+      axisPointer: {
+        type: 'shadow'
+      },
+      formatter: function(params: any[]) {
+        console.log('Tooltip params:', params) // 调试信息
+        if (!params || params.length === 0) return '暂无数据'
+
+        let result = `${params[0].name}<br/>`
+        let total = 0
+
+        // 计算总额
+        params.forEach(param => {
+          const value = Number(param.value || 0)
+          total += value
+          console.log(`${param.seriesName}: ${value}`) // 调试信息
+        })
+
+        // 显示各部分数据和占比
+        params.forEach(param => {
+          const value = Number(param.value || 0)
+          const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : '0.0'
+
+          result += `${param.seriesName}: ${value.toLocaleString('zh-CN', { maximumFractionDigits: 2 })} 万元 (${percentage}%)<br/>`
+        })
+
+        // 显示总计
+        if (total > 0) {
+          result += `<br/>总计: ${total.toLocaleString('zh-CN', { maximumFractionDigits: 2 })} 万元`
+        }
+
+        return result
+      }
+    },
+    legend: {
+      top: 50,
+      type: 'scroll',
+      data: hasData ? Object.keys(categories).map(key => categories[key as keyof typeof categories].name) : []
+    },
+    grid: {
+      left: '8%',
+      right: '5%',
+      bottom: '15%',
+      top: '25%',
+      containLabel: true
+    },
+    xAxis: {
+      type: 'category',
+      data: hasData ? months.value : [],
+      axisLabel: {
+        fontSize: 12
+      }
+    },
+    yAxis: {
+      type: 'value',
+      name: '万元',
+      nameTextStyle: {
+        fontSize: 12
+      },
+      axisLabel: {
+        formatter: function(value: number) {
+          return formatNumber(value)
+        },
+        fontSize: 12
+      }
+    },
+    series: hasData ? series : [],
+    graphic: hasData ? [] : [{
+      type: 'text',
+      left: 'center',
+      top: 'middle',
+      style: {
+        text: '暂无数据',
+        fontSize: 16,
+        fontWeight: 'bold',
+        fill: '#999'
+      }
+    }]
+  }
+
+  monthlyChartInstance.value.setOption(option, true)
+}
+
 // 更新饼图
 const updatePieChart = () => {
   if (!pieChartInstance.value) return
@@ -461,6 +642,7 @@ const updatePieChart = () => {
 // 处理窗口大小变化
 const handleResize = () => {
   chartInstance.value?.resize()
+  monthlyChartInstance.value?.resize()
   pieChartInstance.value?.resize()
 }
 
@@ -473,6 +655,7 @@ onMounted(async () => {
 
 onUnmounted(() => {
   chartInstance.value?.dispose()
+  monthlyChartInstance.value?.dispose()
   pieChartInstance.value?.dispose()
   window.removeEventListener('resize', handleResize)
 })

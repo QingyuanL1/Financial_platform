@@ -30,11 +30,11 @@
                                 设备
                             </td>
                             <td class="border border-gray-300 px-4 py-2">{{ item.customerType }}</td>
-                            <td class="border border-gray-300 px-4 py-2 bg-gray-50">
-                                <span class="px-2 py-1 text-gray-700">{{ item.yearlyPlan || '0' }}</span>
+                            <td class="border border-gray-300 px-4 py-2 bg-gray-50 text-right">
+                                <span class="px-2 py-1 text-gray-700">{{ formatNumber(item.yearlyPlan) }}</span>
                             </td>
-                            <td class="border border-gray-300 px-4 py-2">
-                                <input v-model="item.planExecutionRate" type="text" class="w-full px-2 py-1 border rounded" />
+                            <td class="border border-gray-300 px-4 py-2 bg-gray-50 text-right">
+                                <span class="px-2 py-1 text-gray-700">{{ calculateExecutionRate(item.cumulativeMaterialCost + item.cumulativeLaborCost, item.yearlyPlan) }}%</span>
                             </td>
                             <td class="border border-gray-300 px-4 py-2">
                                 <input v-model.number="item.currentMaterialCost" type="number" class="w-full px-2 py-1 border rounded" step="0.01" />
@@ -58,11 +58,11 @@
                                 元件
                             </td>
                             <td class="border border-gray-300 px-4 py-2">{{ item.customerType }}</td>
-                            <td class="border border-gray-300 px-4 py-2 bg-gray-50">
-                                <span class="px-2 py-1 text-gray-700">{{ item.yearlyPlan || '0' }}</span>
+                            <td class="border border-gray-300 px-4 py-2 bg-gray-50 text-right">
+                                <span class="px-2 py-1 text-gray-700">{{ formatNumber(item.yearlyPlan) }}</span>
                             </td>
-                            <td class="border border-gray-300 px-4 py-2">
-                                <input v-model="item.planExecutionRate" type="text" class="w-full px-2 py-1 border rounded" />
+                            <td class="border border-gray-300 px-4 py-2 bg-gray-50 text-right">
+                                <span class="px-2 py-1 text-gray-700">{{ calculateExecutionRate(item.cumulativeMaterialCost + item.cumulativeLaborCost, item.yearlyPlan) }}%</span>
                             </td>
                             <td class="border border-gray-300 px-4 py-2">
                                 <input v-model.number="item.currentMaterialCost" type="number" class="w-full px-2 py-1 border rounded" step="0.01" />
@@ -86,11 +86,11 @@
                                 工程
                             </td>
                             <td class="border border-gray-300 px-4 py-2">{{ item.customerType }}</td>
-                            <td class="border border-gray-300 px-4 py-2 bg-gray-50">
-                                <span class="px-2 py-1 text-gray-700">{{ item.yearlyPlan || '0' }}</span>
+                            <td class="border border-gray-300 px-4 py-2 bg-gray-50 text-right">
+                                <span class="px-2 py-1 text-gray-700">{{ formatNumber(item.yearlyPlan) }}</span>
                             </td>
-                            <td class="border border-gray-300 px-4 py-2">
-                                <input v-model="item.planExecutionRate" type="text" class="w-full px-2 py-1 border rounded" />
+                            <td class="border border-gray-300 px-4 py-2 bg-gray-50 text-right">
+                                <span class="px-2 py-1 text-gray-700">{{ calculateExecutionRate(item.cumulativeMaterialCost + item.cumulativeLaborCost, item.yearlyPlan) }}%</span>
                             </td>
                             <td class="border border-gray-300 px-4 py-2">
                                 <input v-model.number="item.currentMaterialCost" type="number" class="w-full px-2 py-1 border rounded" step="0.01" />
@@ -113,8 +113,8 @@
                         <td class="border border-gray-300 px-4 py-2">
                             {{ formatNumber(totalData.yearlyPlan) }}
                         </td>
-                        <td class="border border-gray-300 px-4 py-2">
-                            {{ calculateAvgExecutionRate() }}
+                        <td class="border border-gray-300 px-4 py-2 text-right">
+                            {{ calculateExecutionRate(totalData.cumulativeMaterialCost + totalData.cumulativeLaborCost, totalData.yearlyPlan) }}%
                         </td>
                         <td class="border border-gray-300 px-4 py-2">
                             {{ formatNumber(totalData.currentMaterialCost) }}
@@ -163,36 +163,60 @@ const period = ref(route.query.period?.toString() || new Date().toISOString().sl
 
 interface CostItem {
     customerType: string;
-    yearlyPlan: string;
-    planExecutionRate: string;
+    yearlyPlan: number;
+    planExecutionRate: number;
     currentMaterialCost: number;
     cumulativeMaterialCost: number;
     currentLaborCost: number;
     cumulativeLaborCost: number;
 }
 
+// 静态年度计划数据
+const staticYearlyPlans = {
+    equipment: {
+        '上海': 15000.00,
+        '国网': 8000.00,
+        '江苏': 5000.00,
+        '输配电内配': 2000.00,
+        '西门子': 1000.00,
+        '同业': 3000.00,
+        '用户': 2500.00,
+        '其它': 500.00
+    },
+    component: {
+        '用户': 1200.00
+    },
+    project: {
+        '一包': 12000.00,
+        '二包': 3000.00,
+        '域内合作': 8000.00,
+        '域外合作': 4000.00,
+        '其它': 2000.00
+    }
+}
+
 // 获取初始数据模板
 const getInitialData = () => {
     return {
         equipment: [
-            { customerType: '上海', yearlyPlan: '0', planExecutionRate: '0.00%', currentMaterialCost: 0, cumulativeMaterialCost: 0, currentLaborCost: 0, cumulativeLaborCost: 0 },
-            { customerType: '国网', yearlyPlan: '0', planExecutionRate: '0.00%', currentMaterialCost: 0, cumulativeMaterialCost: 0, currentLaborCost: 0, cumulativeLaborCost: 0 },
-            { customerType: '江苏', yearlyPlan: '0', planExecutionRate: '0.00%', currentMaterialCost: 0, cumulativeMaterialCost: 0, currentLaborCost: 0, cumulativeLaborCost: 0 },
-            { customerType: '输配电内配', yearlyPlan: '0', planExecutionRate: '0.00%', currentMaterialCost: 0, cumulativeMaterialCost: 0, currentLaborCost: 0, cumulativeLaborCost: 0 },
-            { customerType: '西门子', yearlyPlan: '0', planExecutionRate: '0.00%', currentMaterialCost: 0, cumulativeMaterialCost: 0, currentLaborCost: 0, cumulativeLaborCost: 0 },
-            { customerType: '同业', yearlyPlan: '0', planExecutionRate: '0.00%', currentMaterialCost: 0, cumulativeMaterialCost: 0, currentLaborCost: 0, cumulativeLaborCost: 0 },
-            { customerType: '用户', yearlyPlan: '0', planExecutionRate: '0.00%', currentMaterialCost: 0, cumulativeMaterialCost: 0, currentLaborCost: 0, cumulativeLaborCost: 0 },
-            { customerType: '其它', yearlyPlan: '0', planExecutionRate: '0.00%', currentMaterialCost: 0, cumulativeMaterialCost: 0, currentLaborCost: 0, cumulativeLaborCost: 0 }
+            { customerType: '上海', yearlyPlan: staticYearlyPlans.equipment['上海'], planExecutionRate: 0, currentMaterialCost: 0, cumulativeMaterialCost: 0, currentLaborCost: 0, cumulativeLaborCost: 0 },
+            { customerType: '国网', yearlyPlan: staticYearlyPlans.equipment['国网'], planExecutionRate: 0, currentMaterialCost: 0, cumulativeMaterialCost: 0, currentLaborCost: 0, cumulativeLaborCost: 0 },
+            { customerType: '江苏', yearlyPlan: staticYearlyPlans.equipment['江苏'], planExecutionRate: 0, currentMaterialCost: 0, cumulativeMaterialCost: 0, currentLaborCost: 0, cumulativeLaborCost: 0 },
+            { customerType: '输配电内配', yearlyPlan: staticYearlyPlans.equipment['输配电内配'], planExecutionRate: 0, currentMaterialCost: 0, cumulativeMaterialCost: 0, currentLaborCost: 0, cumulativeLaborCost: 0 },
+            { customerType: '西门子', yearlyPlan: staticYearlyPlans.equipment['西门子'], planExecutionRate: 0, currentMaterialCost: 0, cumulativeMaterialCost: 0, currentLaborCost: 0, cumulativeLaborCost: 0 },
+            { customerType: '同业', yearlyPlan: staticYearlyPlans.equipment['同业'], planExecutionRate: 0, currentMaterialCost: 0, cumulativeMaterialCost: 0, currentLaborCost: 0, cumulativeLaborCost: 0 },
+            { customerType: '用户', yearlyPlan: staticYearlyPlans.equipment['用户'], planExecutionRate: 0, currentMaterialCost: 0, cumulativeMaterialCost: 0, currentLaborCost: 0, cumulativeLaborCost: 0 },
+            { customerType: '其它', yearlyPlan: staticYearlyPlans.equipment['其它'], planExecutionRate: 0, currentMaterialCost: 0, cumulativeMaterialCost: 0, currentLaborCost: 0, cumulativeLaborCost: 0 }
         ],
         component: [
-            { customerType: '用户', yearlyPlan: '0', planExecutionRate: '0.00%', currentMaterialCost: 0, cumulativeMaterialCost: 0, currentLaborCost: 0, cumulativeLaborCost: 0 }
+            { customerType: '用户', yearlyPlan: staticYearlyPlans.component['用户'], planExecutionRate: 0, currentMaterialCost: 0, cumulativeMaterialCost: 0, currentLaborCost: 0, cumulativeLaborCost: 0 }
         ],
         project: [
-            { customerType: '一包', yearlyPlan: '0', planExecutionRate: '0.00%', currentMaterialCost: 0, cumulativeMaterialCost: 0, currentLaborCost: 0, cumulativeLaborCost: 0 },
-            { customerType: '二包', yearlyPlan: '0', planExecutionRate: '0.00%', currentMaterialCost: 0, cumulativeMaterialCost: 0, currentLaborCost: 0, cumulativeLaborCost: 0 },
-            { customerType: '域内合作', yearlyPlan: '0', planExecutionRate: '0.00%', currentMaterialCost: 0, cumulativeMaterialCost: 0, currentLaborCost: 0, cumulativeLaborCost: 0 },
-            { customerType: '域外合作', yearlyPlan: '0', planExecutionRate: '0.00%', currentMaterialCost: 0, cumulativeMaterialCost: 0, currentLaborCost: 0, cumulativeLaborCost: 0 },
-            { customerType: '其它', yearlyPlan: '0', planExecutionRate: '0.00%', currentMaterialCost: 0, cumulativeMaterialCost: 0, currentLaborCost: 0, cumulativeLaborCost: 0 }
+            { customerType: '一包', yearlyPlan: staticYearlyPlans.project['一包'], planExecutionRate: 0, currentMaterialCost: 0, cumulativeMaterialCost: 0, currentLaborCost: 0, cumulativeLaborCost: 0 },
+            { customerType: '二包', yearlyPlan: staticYearlyPlans.project['二包'], planExecutionRate: 0, currentMaterialCost: 0, cumulativeMaterialCost: 0, currentLaborCost: 0, cumulativeLaborCost: 0 },
+            { customerType: '域内合作', yearlyPlan: staticYearlyPlans.project['域内合作'], planExecutionRate: 0, currentMaterialCost: 0, cumulativeMaterialCost: 0, currentLaborCost: 0, cumulativeLaborCost: 0 },
+            { customerType: '域外合作', yearlyPlan: staticYearlyPlans.project['域外合作'], planExecutionRate: 0, currentMaterialCost: 0, cumulativeMaterialCost: 0, currentLaborCost: 0, cumulativeLaborCost: 0 },
+            { customerType: '其它', yearlyPlan: staticYearlyPlans.project['其它'], planExecutionRate: 0, currentMaterialCost: 0, cumulativeMaterialCost: 0, currentLaborCost: 0, cumulativeLaborCost: 0 }
         ]
     }
 }
@@ -210,8 +234,10 @@ const mergeData = (initialData: any, loadedData: any) => {
             if (loadedItem) {
                 return {
                     ...templateItem,
-                    yearlyPlan: String(loadedItem.yearlyPlan || '0'),
-                    planExecutionRate: String(loadedItem.planExecutionRate || '0.00%'),
+                    // 年度计划始终使用静态数据
+                    yearlyPlan: templateItem.yearlyPlan,
+                    // 计划执行率自动计算，不从数据库加载
+                    planExecutionRate: 0,
                     currentMaterialCost: Number(loadedItem.currentMaterialCost) || 0,
                     cumulativeMaterialCost: Number(loadedItem.cumulativeMaterialCost) || 0,
                     currentLaborCost: Number(loadedItem.currentLaborCost) || 0,
@@ -229,8 +255,10 @@ const mergeData = (initialData: any, loadedData: any) => {
             if (loadedItem) {
                 return {
                     ...templateItem,
-                    yearlyPlan: String(loadedItem.yearlyPlan || '0'),
-                    planExecutionRate: String(loadedItem.planExecutionRate || '0.00%'),
+                    // 年度计划始终使用静态数据
+                    yearlyPlan: templateItem.yearlyPlan,
+                    // 计划执行率自动计算，不从数据库加载
+                    planExecutionRate: 0,
                     currentMaterialCost: Number(loadedItem.currentMaterialCost) || 0,
                     cumulativeMaterialCost: Number(loadedItem.cumulativeMaterialCost) || 0,
                     currentLaborCost: Number(loadedItem.currentLaborCost) || 0,
@@ -248,8 +276,10 @@ const mergeData = (initialData: any, loadedData: any) => {
             if (loadedItem) {
                 return {
                     ...templateItem,
-                    yearlyPlan: String(loadedItem.yearlyPlan || '0'),
-                    planExecutionRate: String(loadedItem.planExecutionRate || '0.00%'),
+                    // 年度计划始终使用静态数据
+                    yearlyPlan: templateItem.yearlyPlan,
+                    // 计划执行率自动计算，不从数据库加载
+                    planExecutionRate: 0,
                     currentMaterialCost: Number(loadedItem.currentMaterialCost) || 0,
                     cumulativeMaterialCost: Number(loadedItem.cumulativeMaterialCost) || 0,
                     currentLaborCost: Number(loadedItem.currentLaborCost) || 0,
@@ -301,6 +331,13 @@ const calculateAvgExecutionRate = (): string => {
 
     if (validItemCount === 0) return '/'
     return (totalRate / validItemCount).toFixed(2) + '%'
+}
+
+// 计算执行率
+const calculateExecutionRate = (cumulativeCost: number, yearlyPlan: number): string => {
+    if (yearlyPlan === 0) return '0.00'
+    const rate = (cumulativeCost / yearlyPlan) * 100
+    return rate.toFixed(2)
 }
 
 // 格式化数字

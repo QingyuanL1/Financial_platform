@@ -1,7 +1,10 @@
 <template>
     <div class="max-w-[1500px] mx-auto bg-white rounded-lg shadow-lg p-6">
         <div class="flex justify-between items-center mb-6">
-            <h1 class="text-2xl font-bold">主营业务毛利率结构与质量</h1>
+            <div>
+                <h1 class="text-2xl font-bold">主营业务毛利率结构与质量</h1>
+                <div class="text-sm text-blue-600 mt-1">当期实际值自动计算：(主营收入-主营成本)/主营收入 × 100%</div>
+            </div>
             <div class="text-gray-500">(按年度计划口径分解)</div>
             <div class="flex items-center space-x-4">
                 <input v-model="period" type="month" class="px-3 py-2 border rounded" />
@@ -28,7 +31,7 @@
                             <input v-model="data.equipment.shanghai.plan" type="text" class="w-full px-2 py-1 border rounded bg-gray-50" readonly />
                         </td>
                         <td class="border border-gray-300 px-4 py-2">
-                            <input v-model="data.equipment.shanghai.actual" type="text" class="w-full px-2 py-1 border rounded" @input="calculateDifference('equipment', 'shanghai')" />
+                            <input v-model="data.equipment.shanghai.actual" type="text" class="w-full px-2 py-1 border rounded bg-gray-50" readonly />
                         </td>
                         <td class="border border-gray-300 px-4 py-2">
                             <input v-model="data.equipment.shanghai.difference" type="text" class="w-full px-2 py-1 border rounded bg-gray-50" readonly />
@@ -40,7 +43,7 @@
                             <input v-model="data.equipment.national.plan" type="text" class="w-full px-2 py-1 border rounded bg-gray-50" readonly />
                         </td>
                         <td class="border border-gray-300 px-4 py-2">
-                            <input v-model="data.equipment.national.actual" type="text" class="w-full px-2 py-1 border rounded" @input="calculateDifference('equipment', 'national')" />
+                            <input v-model="data.equipment.national.actual" type="text" class="w-full px-2 py-1 border rounded bg-gray-50" readonly />
                         </td>
                         <td class="border border-gray-300 px-4 py-2">
                             <input v-model="data.equipment.national.difference" type="text" class="w-full px-2 py-1 border rounded bg-gray-50" readonly />
@@ -52,7 +55,7 @@
                             <input v-model="data.equipment.jiangsu.plan" type="text" class="w-full px-2 py-1 border rounded bg-gray-50" readonly />
                         </td>
                         <td class="border border-gray-300 px-4 py-2">
-                            <input v-model="data.equipment.jiangsu.actual" type="text" class="w-full px-2 py-1 border rounded" @input="calculateDifference('equipment', 'jiangsu')" />
+                            <input v-model="data.equipment.jiangsu.actual" type="text" class="w-full px-2 py-1 border rounded bg-gray-50" readonly />
                         </td>
                         <td class="border border-gray-300 px-4 py-2">
                             <input v-model="data.equipment.jiangsu.difference" type="text" class="w-full px-2 py-1 border rounded bg-gray-50" readonly />
@@ -64,7 +67,7 @@
                             <input v-model="data.equipment.power.plan" type="text" class="w-full px-2 py-1 border rounded bg-gray-50" readonly />
                         </td>
                         <td class="border border-gray-300 px-4 py-2">
-                            <input v-model="data.equipment.power.actual" type="text" class="w-full px-2 py-1 border rounded" @input="calculateDifference('equipment', 'power')" />
+                            <input v-model="data.equipment.power.actual" type="text" class="w-full px-2 py-1 border rounded bg-gray-50" readonly />
                         </td>
                         <td class="border border-gray-300 px-4 py-2">
                             <input v-model="data.equipment.power.difference" type="text" class="w-full px-2 py-1 border rounded bg-gray-50" readonly />
@@ -76,7 +79,7 @@
                             <input v-model="data.equipment.siemens.plan" type="text" class="w-full px-2 py-1 border rounded bg-gray-50" readonly />
                         </td>
                         <td class="border border-gray-300 px-4 py-2">
-                            <input v-model="data.equipment.siemens.actual" type="text" class="w-full px-2 py-1 border rounded" @input="calculateDifference('equipment', 'siemens')" />
+                            <input v-model="data.equipment.siemens.actual" type="text" class="w-full px-2 py-1 border rounded bg-gray-50" readonly />
                         </td>
                         <td class="border border-gray-300 px-4 py-2">
                             <input v-model="data.equipment.siemens.difference" type="text" class="w-full px-2 py-1 border rounded bg-gray-50" readonly />
@@ -88,7 +91,7 @@
                             <input v-model="data.equipment.peers.plan" type="text" class="w-full px-2 py-1 border rounded bg-gray-50" readonly />
                         </td>
                         <td class="border border-gray-300 px-4 py-2">
-                            <input v-model="data.equipment.peers.actual" type="text" class="w-full px-2 py-1 border rounded" @input="calculateDifference('equipment', 'peers')" />
+                            <input v-model="data.equipment.peers.actual" type="text" class="w-full px-2 py-1 border rounded bg-gray-50" readonly />
                         </td>
                         <td class="border border-gray-300 px-4 py-2">
                             <input v-model="data.equipment.peers.difference" type="text" class="w-full px-2 py-1 border rounded bg-gray-50" readonly />
@@ -100,7 +103,7 @@
                             <input v-model="data.equipment.users.plan" type="text" class="w-full px-2 py-1 border rounded bg-gray-50" readonly />
                         </td>
                         <td class="border border-gray-300 px-4 py-2">
-                            <input v-model="data.equipment.users.actual" type="text" class="w-full px-2 py-1 border rounded" @input="calculateDifference('equipment', 'users')" />
+                            <input v-model="data.equipment.users.actual" type="text" class="w-full px-2 py-1 border rounded bg-gray-50" readonly />
                         </td>
                         <td class="border border-gray-300 px-4 py-2">
                             <input v-model="data.equipment.users.difference" type="text" class="w-full px-2 py-1 border rounded bg-gray-50" readonly />
@@ -112,7 +115,7 @@
                             <input v-model="data.equipment.others.plan" type="text" class="w-full px-2 py-1 border rounded bg-gray-50" readonly />
                         </td>
                         <td class="border border-gray-300 px-4 py-2">
-                            <input v-model="data.equipment.others.actual" type="text" class="w-full px-2 py-1 border rounded" @input="calculateDifference('equipment', 'others')" />
+                            <input v-model="data.equipment.others.actual" type="text" class="w-full px-2 py-1 border rounded bg-gray-50" readonly />
                         </td>
                         <td class="border border-gray-300 px-4 py-2">
                             <input v-model="data.equipment.others.difference" type="text" class="w-full px-2 py-1 border rounded bg-gray-50" readonly />
@@ -127,7 +130,7 @@
                             <input v-model="data.components.users.plan" type="text" class="w-full px-2 py-1 border rounded bg-gray-50" readonly />
                         </td>
                         <td class="border border-gray-300 px-4 py-2">
-                            <input v-model="data.components.users.actual" type="text" class="w-full px-2 py-1 border rounded" @input="calculateDifference('components', 'users')" />
+                            <input v-model="data.components.users.actual" type="text" class="w-full px-2 py-1 border rounded bg-gray-50" readonly />
                         </td>
                         <td class="border border-gray-300 px-4 py-2">
                             <input v-model="data.components.users.difference" type="text" class="w-full px-2 py-1 border rounded bg-gray-50" readonly />
@@ -142,7 +145,7 @@
                             <input v-model="data.engineering.package1.plan" type="text" class="w-full px-2 py-1 border rounded bg-gray-50" readonly />
                         </td>
                         <td class="border border-gray-300 px-4 py-2">
-                            <input v-model="data.engineering.package1.actual" type="text" class="w-full px-2 py-1 border rounded" @input="calculateDifference('engineering', 'package1')" />
+                            <input v-model="data.engineering.package1.actual" type="text" class="w-full px-2 py-1 border rounded bg-gray-50" readonly />
                         </td>
                         <td class="border border-gray-300 px-4 py-2">
                             <input v-model="data.engineering.package1.difference" type="text" class="w-full px-2 py-1 border rounded bg-gray-50" readonly />
@@ -154,7 +157,7 @@
                             <input v-model="data.engineering.package2.plan" type="text" class="w-full px-2 py-1 border rounded bg-gray-50" readonly />
                         </td>
                         <td class="border border-gray-300 px-4 py-2">
-                            <input v-model="data.engineering.package2.actual" type="text" class="w-full px-2 py-1 border rounded" @input="calculateDifference('engineering', 'package2')" />
+                            <input v-model="data.engineering.package2.actual" type="text" class="w-full px-2 py-1 border rounded bg-gray-50" readonly />
                         </td>
                         <td class="border border-gray-300 px-4 py-2">
                             <input v-model="data.engineering.package2.difference" type="text" class="w-full px-2 py-1 border rounded bg-gray-50" readonly />
@@ -166,7 +169,7 @@
                             <input v-model="data.engineering.domestic.plan" type="text" class="w-full px-2 py-1 border rounded bg-gray-50" readonly />
                         </td>
                         <td class="border border-gray-300 px-4 py-2">
-                            <input v-model="data.engineering.domestic.actual" type="text" class="w-full px-2 py-1 border rounded" @input="calculateDifference('engineering', 'domestic')" />
+                            <input v-model="data.engineering.domestic.actual" type="text" class="w-full px-2 py-1 border rounded bg-gray-50" readonly />
                         </td>
                         <td class="border border-gray-300 px-4 py-2">
                             <input v-model="data.engineering.domestic.difference" type="text" class="w-full px-2 py-1 border rounded bg-gray-50" readonly />
@@ -178,7 +181,7 @@
                             <input v-model="data.engineering.international.plan" type="text" class="w-full px-2 py-1 border rounded bg-gray-50" readonly />
                         </td>
                         <td class="border border-gray-300 px-4 py-2">
-                            <input v-model="data.engineering.international.actual" type="text" class="w-full px-2 py-1 border rounded" @input="calculateDifference('engineering', 'international')" />
+                            <input v-model="data.engineering.international.actual" type="text" class="w-full px-2 py-1 border rounded bg-gray-50" readonly />
                         </td>
                         <td class="border border-gray-300 px-4 py-2">
                             <input v-model="data.engineering.international.difference" type="text" class="w-full px-2 py-1 border rounded bg-gray-50" readonly />
@@ -190,7 +193,7 @@
                             <input v-model="data.engineering.others.plan" type="text" class="w-full px-2 py-1 border rounded bg-gray-50" readonly />
                         </td>
                         <td class="border border-gray-300 px-4 py-2">
-                            <input v-model="data.engineering.others.actual" type="text" class="w-full px-2 py-1 border rounded" @input="calculateDifference('engineering', 'others')" />
+                            <input v-model="data.engineering.others.actual" type="text" class="w-full px-2 py-1 border rounded bg-gray-50" readonly />
                         </td>
                         <td class="border border-gray-300 px-4 py-2">
                             <input v-model="data.engineering.others.difference" type="text" class="w-full px-2 py-1 border rounded bg-gray-50" readonly />
@@ -204,7 +207,7 @@
                             <input v-model="data.total.plan" type="text" class="w-full px-2 py-1 border rounded font-bold bg-gray-50" readonly />
                         </td>
                         <td class="border border-gray-300 px-4 py-2">
-                            <input v-model="data.total.actual" type="text" class="w-full px-2 py-1 border rounded font-bold" @input="calculateDifference('total', '')" />
+                            <input v-model="data.total.actual" type="text" class="w-full px-2 py-1 border rounded font-bold bg-gray-50" readonly />
                         </td>
                         <td class="border border-gray-300 px-4 py-2">
                             <input v-model="data.total.difference" type="text" class="w-full px-2 py-1 border rounded font-bold bg-gray-50" readonly />
@@ -215,6 +218,9 @@
         </div>
 
         <div class="mt-4 flex justify-end space-x-4">
+            <button @click="handleRefresh" class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">
+                重新计算
+            </button>
             <button @click="handleSave" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
                 保存
             </button>
@@ -335,65 +341,109 @@ const recalculateAllDifferences = () => {
     calculateDifference('total', '')
 }
 
-// 合并数据：将从数据库加载的数据与初始模板合并，但保持年度计划为静态数据
+// 合并数据：将从数据库加载的数据与初始模板合并，但保持年度计划和实际值为静态/计算数据
 const mergeData = (templateData: any, loadedData: any) => {
     if (!loadedData || typeof loadedData !== 'object') {
         return templateData
     }
-    
+
     const result = JSON.parse(JSON.stringify(templateData))
-    
-    // 递归合并对象，但跳过plan字段
+
+    // 递归合并对象，但跳过plan、actual和difference字段
     const deepMerge = (target: any, source: any) => {
         Object.keys(source).forEach(key => {
             if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key])) {
                 if (!target[key]) target[key] = {}
                 deepMerge(target[key], source[key])
             } else {
-                // 跳过plan和difference字段，保持静态数据和自动计算
-                if (key !== 'plan' && key !== 'difference') {
+                // 跳过plan、actual和difference字段，保持静态数据和自动计算
+                if (key !== 'plan' && key !== 'actual' && key !== 'difference') {
                     target[key] = source[key] || target[key]
                 }
             }
         })
     }
-    
+
     deepMerge(result, loadedData)
     return result
+}
+
+// 自动计算业务利润率
+const calculateProfitMargin = async (targetPeriod: string) => {
+    try {
+        console.log(`正在计算业务利润率，期间: ${targetPeriod}`)
+
+        const response = await fetch(`http://47.111.95.19:3000/business-profit-margin/calculate/${targetPeriod}`)
+
+        if (response.ok) {
+            const result = await response.json()
+            console.log('计算结果:', result)
+
+            if (result.success && result.data) {
+                // 更新计算后的数据
+                Object.assign(data, result.data)
+
+                // 重新计算所有偏差
+                recalculateAllDifferences()
+
+                console.log('业务利润率计算完成:', data)
+                return
+            }
+        } else if (response.status === 404) {
+            console.log('缺少必要的收入或成本数据，无法计算利润率')
+            alert('缺少必要的收入或成本数据，无法计算利润率。请先填写主营业务收入和主营业务成本数据。')
+        } else {
+            console.log('计算利润率失败')
+        }
+
+        // 如果计算失败，使用初始数据
+        Object.assign(data, getInitialData())
+        recalculateAllDifferences()
+
+    } catch (error) {
+        console.error('计算业务利润率失败:', error)
+        // 出错时使用初始数据
+        Object.assign(data, getInitialData())
+        recalculateAllDifferences()
+    }
 }
 
 // 加载数据
 const loadData = async (targetPeriod: string) => {
     try {
         console.log(`正在加载主营业务毛利率结构数据，期间: ${targetPeriod}`)
-        
+
+        // 首先尝试自动计算
+        await calculateProfitMargin(targetPeriod)
+
+        // 然后尝试加载已保存的数据（如果有的话）
         const response = await fetch(`http://47.111.95.19:3000/business-profit-margin/${targetPeriod}`)
         let loadedData: any = null
-        
+
         if (response.ok) {
             const result = await response.json()
-            console.log('API返回数据:', result)
-            
+            console.log('API返回已保存数据:', result)
+
             if (result.success && result.data) {
                 loadedData = result.data
-                console.log('成功获取数据，开始合并...')
+                console.log('成功获取已保存数据，开始合并...')
+
+                // 只合并非计算字段（保持actual字段为计算值）
+                const currentData = JSON.parse(JSON.stringify(data))
+                const mergedData = mergeData(currentData, loadedData)
+                Object.assign(data, mergedData)
+
+                // 重新计算所有偏差
+                recalculateAllDifferences()
             }
         } else if (response.status === 404) {
-            console.log('该期间暂无数据，使用预算数据填充')
+            console.log('该期间暂无已保存数据，使用计算数据')
         } else {
-            console.log('加载数据失败，使用预算数据填充')
+            console.log('加载已保存数据失败，使用计算数据')
         }
-        
-        // 无论是否有数据，都进行合并（确保预算数据始终显示）
-        const initialData = getInitialData()
-        const mergedData = loadedData ? mergeData(initialData, loadedData) : initialData
-        Object.assign(data, mergedData)
-        
-        // 重新计算所有偏差
-        recalculateAllDifferences()
-        
-        console.log('合并后的数据:', data)
-        
+
+        console.log('最终数据:', data)
+
     } catch (error) {
         console.error('加载数据失败:', error)
         // 出错时也要确保预算数据显示
@@ -446,6 +496,17 @@ const handleSave = async () => {
     } catch (error) {
         console.error('保存失败:', error)
         alert('保存失败: ' + (error instanceof Error ? error.message : '未知错误'))
+    }
+}
+
+const handleRefresh = async () => {
+    try {
+        console.log('手动重新计算业务利润率')
+        await calculateProfitMargin(period.value)
+        alert('重新计算完成')
+    } catch (error) {
+        console.error('重新计算失败:', error)
+        alert('重新计算失败: ' + (error instanceof Error ? error.message : '未知错误'))
     }
 }
 

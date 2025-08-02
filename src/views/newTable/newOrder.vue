@@ -14,8 +14,8 @@
                         <th class="border border-gray-300 px-4 py-2">板块属性</th>
                         <th class="border border-gray-300 px-4 py-2">客户属性</th>
                         <th class="border border-gray-300 px-4 py-2">年度计划</th>
-                        <th class="border border-gray-300 px-4 py-2">当月收入</th>
-                        <th class="border border-gray-300 px-4 py-2">累计收入</th>
+                        <th class="border border-gray-300 px-4 py-2">当月新增</th>
+                        <th class="border border-gray-300 px-4 py-2">累计新签订单</th>
                         <th class="border border-gray-300 px-4 py-2">执行进度</th>
                     </tr>
                 </thead>

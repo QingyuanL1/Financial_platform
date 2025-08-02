@@ -7,16 +7,27 @@
         <p class="text-gray-600 mt-2">资产负债率分析与趋势监控</p>
       </div>
 
-      <!-- 年份选择器 -->
+      <!-- 选择器区域 -->
       <div class="bg-white p-6 rounded-lg shadow-sm mb-8">
         <div class="flex items-center justify-between">
-          <h3 class="text-lg font-semibold text-gray-900">数据年份选择</h3>
-          <div class="flex items-center space-x-3">
-            <span class="text-sm text-gray-600">选择年份:</span>
-            <select v-model="selectedYear" @change="fetchData" 
-                    class="px-3 py-1.5 text-sm border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">
-              <option v-for="year in availableYears" :key="year" :value="year">{{ year }}年</option>
-            </select>
+          <div class="flex items-center space-x-4">
+            <h3 class="text-lg font-semibold text-gray-900">数据筛选</h3>
+            <div class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+              <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10V9a1 1 0 011-1h4a1 1 0 011 1v12M9 7h1m-1 4h1"></path>
+              </svg>
+              当前公司：{{ getSelectedCompanyName() }}
+            </div>
+          </div>
+          <div class="flex items-center space-x-6">
+            <!-- 年份选择器 -->
+            <div class="flex items-center space-x-3">
+              <span class="text-sm text-gray-600">选择年份:</span>
+              <select v-model="selectedYear" @change="fetchData"
+                      class="px-3 py-1.5 text-sm border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">
+                <option v-for="year in availableYears" :key="year" :value="year">{{ year }}年</option>
+              </select>
+            </div>
           </div>
         </div>
       </div>
@@ -24,7 +35,7 @@
       <!-- 月度趋势图表 -->
       <div class="bg-white rounded-lg shadow-sm p-6 mb-8">
         <div class="flex justify-between items-center mb-6">
-          <h3 class="text-lg font-semibold text-gray-900">{{ selectedYear }}年资产负债率月度趋势</h3>
+          <h3 class="text-lg font-semibold text-gray-900">{{ getSelectedCompanyName() }} {{ selectedYear }}年资产负债率月度趋势</h3>
           <div class="flex items-center space-x-4">
             <div class="flex items-center">
               <div class="w-4 h-4 bg-blue-500 rounded mr-2"></div>
@@ -41,7 +52,7 @@
 
       <!-- 当前资产负债率卡片 -->
       <div class="bg-white rounded-lg shadow-sm p-6">
-        <h3 class="text-lg font-semibold text-gray-900 mb-6">当前资产负债率概况</h3>
+        <h3 class="text-lg font-semibold text-gray-900 mb-6">{{ getSelectedCompanyName() }}当前资产负债率概况</h3>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div class="p-4 border border-gray-200 rounded-lg">
             <div class="flex justify-between items-center mb-3">
@@ -92,8 +103,28 @@ import * as echarts from 'echarts'
 
 // 响应式数据
 const selectedYear = ref(new Date().getFullYear().toString())
+const selectedCompany = ref('main')
 const availableYears = ref<string[]>([])
+const availableCompanies = ref([
+  { key: 'main', name: '电气公司', table: 'balance_sheet' },
+  { key: 'nanhua', name: '南华公司', table: 'nanhua_balance_sheet' },
+  { key: 'tuoyuan', name: '拓源公司', table: 'tuoyuan_balance_sheet' }
+])
 const loading = ref(true)
+
+// 根据登录公司初始化选择的公司
+const initializeCompany = () => {
+  const selectedCompanyName = localStorage.getItem('selectedCompany') || ''
+  
+  // 公司名称映射
+  const companyMapping: { [key: string]: string } = {
+    '常州拓源电气集团有限公司': 'tuoyuan',
+    '上海南华兰陵电气有限公司': 'main',
+    '上海南华兰陵实业有限公司': 'nanhua'
+  }
+  
+  selectedCompany.value = companyMapping[selectedCompanyName] || 'main'
+}
 
 // 图表引用
 const chartRef = ref<HTMLElement | null>(null)
@@ -143,6 +174,12 @@ const getCompletionBarColor = (rate: number) => {
   return 'bg-red-500'
 }
 
+// 获取选中公司名称
+const getSelectedCompanyName = () => {
+  const company = availableCompanies.value.find(c => c.key === selectedCompany.value)
+  return company ? company.name : '电气公司'
+}
+
 // 初始化年份选项
 const initAvailableYears = () => {
   const currentYear = new Date().getFullYear()
@@ -170,7 +207,7 @@ const fetchData = async () => {
 // 获取资产负债率数据
 const fetchAssetLiabilityRatioData = async () => {
   try {
-    const response = await fetch(`http://47.111.95.19:3000/analytics/asset-liability-ratio/${selectedYear.value}`)
+    const response = await fetch(`http://47.111.95.19:3000/analytics/asset-liability-ratio/${selectedYear.value}?company=${selectedCompany.value}`)
 
     if (response.ok) {
       const result = await response.json()
@@ -222,7 +259,7 @@ const updateChart = () => {
   if (months.value.length === 0 || monthlyData.value.length === 0) {
     const option = {
       title: {
-        text: `${selectedYear.value}年暂无资产负债率数据`,
+        text: `${getSelectedCompanyName()}${selectedYear.value}年暂无资产负债率数据`,
         textStyle: {
           fontSize: 16,
           fontWeight: 'bold',
@@ -236,7 +273,7 @@ const updateChart = () => {
         left: 'center',
         top: '60%',
         style: {
-          text: '请选择其他年份查看数据',
+          text: '请选择其他公司或年份查看数据',
           fontSize: 14,
           fill: '#9CA3AF'
         }
@@ -250,7 +287,7 @@ const updateChart = () => {
 
   const option = {
     title: {
-      text: `${selectedYear.value}年资产负债率趋势分析`,
+      text: `${getSelectedCompanyName()}${selectedYear.value}年资产负债率趋势分析`,
       textStyle: {
         fontSize: 16,
         fontWeight: 'bold',
@@ -346,6 +383,7 @@ const handleResize = () => {
 }
 
 onMounted(async () => {
+  initializeCompany()
   initAvailableYears()
   initChart()
   await fetchData()

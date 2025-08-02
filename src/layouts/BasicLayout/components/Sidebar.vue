@@ -11,10 +11,31 @@
                 <div class="px-6 py-3">
                     <ul class="mt-3 space-y-2">
                         <li>
-                            <router-link to="/visualization"
+                            <router-link to="/home"
                                 class="flex items-center px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition-colors"
-                                :class="{ 'bg-blue-50 text-blue-600': currentRoute === '/visualization' }">
+                                :class="{ 'bg-blue-50 text-blue-600': currentRoute === '/home' }">
                                 <span class="ml-2">首页</span>
+                            </router-link>
+                        </li>
+                        <li v-if="shouldShowCompanyMenu('上海南华兰陵电气有限公司')">
+                            <router-link to="/shanghai-nanhua-lanling-electric"
+                                class="flex items-center px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition-colors"
+                                :class="{ 'bg-blue-50 text-blue-600': currentRoute.startsWith('/shanghai-nanhua-lanling-electric') }">
+                                <span class="ml-2">上海南华兰陵电气有限公司</span>
+                            </router-link>
+                        </li>
+                        <li v-if="shouldShowCompanyMenu('上海南华兰陵实业有限公司')">
+                            <router-link to="/shanghai-nanhua-lanling-industry"
+                                class="flex items-center px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition-colors"
+                                :class="{ 'bg-blue-50 text-blue-600': currentRoute.startsWith('/shanghai-nanhua-lanling-industry') }">
+                                <span class="ml-2">上海南华兰陵实业有限公司</span>
+                            </router-link>
+                        </li>
+                        <li v-if="shouldShowCompanyMenu('常州拓源电气集团有限公司')">
+                            <router-link to="/changzhou-tuoyuan-electric"
+                                class="flex items-center px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition-colors"
+                                :class="{ 'bg-blue-50 text-blue-600': currentRoute.startsWith('/changzhou-tuoyuan-electric') }">
+                                <span class="ml-2">常州拓源电气有限公司</span>
                             </router-link>
                         </li>
                         <li>
@@ -149,6 +170,34 @@ const router = useRouter()
 const userStore = useUserStore()
 const currentRoute = computed(() => route.path)
 
+// 公司名称到路由的映射
+const companyRouteMapping = {
+    '上海南华兰陵电气有限公司': '/shanghai-nanhua-lanling-electric',
+    '上海南华兰陵实业有限公司': '/shanghai-nanhua-lanling-industry', 
+    '常州拓源电气集团有限公司': '/changzhou-tuoyuan-electric'
+}
+
+// 获取当前用户选择的公司
+const selectedCompany = ref('')
+
+// 自动跳转到用户选择的公司页面
+const navigateToSelectedCompany = () => {
+    const company = localStorage.getItem('selectedCompany') || storage.get('SELECTED_COMPANY')
+    if (company && companyRouteMapping[company as keyof typeof companyRouteMapping]) {
+        selectedCompany.value = company
+        const targetRoute = companyRouteMapping[company as keyof typeof companyRouteMapping]
+        // 只在当前不在公司页面时才跳转
+        if (route.path === '/' || route.path === '/home') {
+            router.push(targetRoute)
+        }
+    }
+}
+
+// 检查是否显示某个公司菜单
+const shouldShowCompanyMenu = (companyName: string) => {
+    return selectedCompany.value === companyName
+}
+
 // 用户权限信息
 const userPermissions = ref<any>(null)
 
@@ -209,8 +258,17 @@ onMounted(async () => {
         }
     }
 
+    // 设置选中的公司
+    const company = localStorage.getItem('selectedCompany') || storage.get('SELECTED_COMPANY')
+    if (company) {
+        selectedCompany.value = company
+    }
+
     // 获取用户权限信息
     await fetchUserPermissions()
+    
+    // 自动跳转到用户选择的公司页面
+    navigateToSelectedCompany()
 })
 
 const handleLogout = () => {

@@ -52,7 +52,7 @@
                                             class="w-full px-2 py-1 border rounded text-right" step="0.01" />
                                     </td>
                                     <td class="border border-gray-300 px-4 py-2 text-right">
-                                        {{ calculateProgress(item.currentTotal, item.yearlyPlan) }}
+                                        {{ calculateProgress(item.currentPeriod, item.yearlyPlan) }}
                                     </td>
                                 </tr>
                             </template>
@@ -73,7 +73,7 @@
                                             class="w-full px-2 py-1 border rounded text-right" step="0.01" />
                                     </td>
                                     <td class="border border-gray-300 px-4 py-2 text-right">
-                                        {{ calculateProgress(item.currentTotal, item.yearlyPlan) }}
+                                        {{ calculateProgress(item.currentPeriod, item.yearlyPlan) }}
                                     </td>
                                 </tr>
                             </template>
@@ -94,7 +94,7 @@
                                             class="w-full px-2 py-1 border rounded text-right" step="0.01" />
                                     </td>
                                     <td class="border border-gray-300 px-4 py-2 text-right">
-                                        {{ calculateProgress(item.currentTotal, item.yearlyPlan) }}
+                                        {{ calculateProgress(item.currentPeriod, item.yearlyPlan) }}
                                     </td>
                                 </tr>
                             </template>
@@ -109,7 +109,7 @@
                                     {{ formatNumber(totalCurrentPeriod) }}
                                 </td>
                                 <td class="border border-gray-300 px-4 py-2 text-right">
-                                    {{ calculateProgress(totalCurrentTotal, totalYearlyPlan) }}
+                                    {{ calculateProgress(totalCurrentPeriod, totalYearlyPlan) }}
                                 </td>
                             </tr>
                         </tbody>
@@ -434,7 +434,7 @@ const handleSave = async () => {
             yearlyPlan: item.yearlyPlan || 0,
             currentPeriod: item.currentPeriod || 0,
             currentTotal: item.currentTotal || 0,
-            progress: calculateProgressNumber(item.currentTotal || 0, item.yearlyPlan || 0)
+            progress: calculateProgressNumber(item.currentPeriod || 0, item.yearlyPlan || 0)
         }))
 
         const cleanComponentData = componentData.value.map(item => ({
@@ -442,7 +442,7 @@ const handleSave = async () => {
             yearlyPlan: item.yearlyPlan || 0,
             currentPeriod: item.currentPeriod || 0,
             currentTotal: item.currentTotal || 0,
-            progress: calculateProgressNumber(item.currentTotal || 0, item.yearlyPlan || 0)
+            progress: calculateProgressNumber(item.currentPeriod || 0, item.yearlyPlan || 0)
         }))
 
         const cleanEngineeringData = engineeringData.value.map(item => ({
@@ -450,7 +450,7 @@ const handleSave = async () => {
             yearlyPlan: item.yearlyPlan || 0,
             currentPeriod: item.currentPeriod || 0,
             currentTotal: item.currentTotal || 0,
-            progress: calculateProgressNumber(item.currentTotal || 0, item.yearlyPlan || 0)
+            progress: calculateProgressNumber(item.currentPeriod || 0, item.yearlyPlan || 0)
         }))
 
         const saveData = {

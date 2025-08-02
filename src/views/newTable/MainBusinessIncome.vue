@@ -147,64 +147,116 @@ interface IncomeData {
     engineering: IncomeItem[];
 }
 
-// 获取初始数据模板
+// 获取初始数据模板（写死年度计划数据）
 const getInitialData = (): IncomeData => {
     return {
         equipment: [
-            { customer: '上海', yearlyPlan: '缺少数据', currentMonthIncome: 0, accumulatedIncome: 0, progress: '/' },
-            { customer: '国网', yearlyPlan: '缺少数据', currentMonthIncome: 0, accumulatedIncome: 0, progress: '/' },
-            { customer: '江苏', yearlyPlan: '缺少数据', currentMonthIncome: 0, accumulatedIncome: 0, progress: '/' },
-            { customer: '输配电内配', yearlyPlan: '缺少数据', currentMonthIncome: 0, accumulatedIncome: 0, progress: '/' },
-            { customer: '西门子', yearlyPlan: '缺少数据', currentMonthIncome: 0, accumulatedIncome: 0, progress: '/' },
-            { customer: '同业', yearlyPlan: '缺少数据', currentMonthIncome: 0, accumulatedIncome: 0, progress: '/' },
-            { customer: '用户', yearlyPlan: '缺少数据', currentMonthIncome: 0, accumulatedIncome: 0, progress: '/' },
-            { customer: '其它', yearlyPlan: '缺少数据', currentMonthIncome: 0, accumulatedIncome: 0, progress: '/' }
+            { customer: '上海', yearlyPlan: 22000, currentMonthIncome: 0, accumulatedIncome: 0, progress: '/' },
+            { customer: '国网', yearlyPlan: 5000, currentMonthIncome: 0, accumulatedIncome: 0, progress: '/' },
+            { customer: '江苏', yearlyPlan: 3000, currentMonthIncome: 0, accumulatedIncome: 0, progress: '/' },
+            { customer: '输配电内配', yearlyPlan: 2000, currentMonthIncome: 0, accumulatedIncome: 0, progress: '/' },
+            { customer: '西门子', yearlyPlan: 1000, currentMonthIncome: 0, accumulatedIncome: 0, progress: '/' },
+            { customer: '同业', yearlyPlan: 3000, currentMonthIncome: 0, accumulatedIncome: 0, progress: '/' },
+            { customer: '用户', yearlyPlan: 2000, currentMonthIncome: 0, accumulatedIncome: 0, progress: '/' },
+            { customer: '其它', yearlyPlan: 0, currentMonthIncome: 0, accumulatedIncome: 0, progress: '/' }
         ],
         components: [
-            { customer: '用户', yearlyPlan: '缺少数据', currentMonthIncome: 0, accumulatedIncome: 0, progress: '/' }
+            { customer: '用户', yearlyPlan: 1000, currentMonthIncome: 0, accumulatedIncome: 0, progress: '/' }
         ],
         engineering: [
-            { customer: '一包', yearlyPlan: '缺少数据', currentMonthIncome: 0, accumulatedIncome: 0, progress: '/' },
-            { customer: '二包', yearlyPlan: '缺少数据', currentMonthIncome: 0, accumulatedIncome: 0, progress: '/' },
-            { customer: '域内合作', yearlyPlan: '缺少数据', currentMonthIncome: 0, accumulatedIncome: 0, progress: '/' },
-            { customer: '域外合作', yearlyPlan: '缺少数据', currentMonthIncome: 0, accumulatedIncome: 0, progress: '/' },
-            { customer: '其它', yearlyPlan: '缺少数据', currentMonthIncome: 0, accumulatedIncome: 0, progress: '/' }
+            { customer: '一包', yearlyPlan: 3800, currentMonthIncome: 0, accumulatedIncome: 0, progress: '/' },
+            { customer: '二包', yearlyPlan: 700, currentMonthIncome: 0, accumulatedIncome: 0, progress: '/' },
+            { customer: '域内合作', yearlyPlan: 10000, currentMonthIncome: 0, accumulatedIncome: 0, progress: '/' },
+            { customer: '域外合作', yearlyPlan: 0, currentMonthIncome: 0, accumulatedIncome: 0, progress: '/' },
+            { customer: '其它', yearlyPlan: 1500, currentMonthIncome: 0, accumulatedIncome: 0, progress: '/' }
         ]
     }
 }
 
 // 数据合并函数
-const mergeData = (defaultData: IncomeData, savedData: IncomeData): IncomeData => {
+const mergeData = (defaultData: IncomeData, savedData: any): IncomeData => {
     const merged = JSON.parse(JSON.stringify(defaultData))
     
-    // 合并设备数据
-    if (savedData.equipment) {
+    // 安全检查savedData
+    if (!savedData || typeof savedData !== 'object') {
+        console.log('savedData无效，返回默认数据')
+        return merged
+    }
+    
+    // 合并设备数据（保留写死的年度计划）
+    if (Array.isArray(savedData.equipment) && savedData.equipment.length > 0) {
         merged.equipment.forEach((item, index) => {
             if (savedData.equipment[index]) {
+                const originalYearlyPlan = item.yearlyPlan // 保存原始年度计划
                 Object.assign(item, savedData.equipment[index])
+                // 如果API数据的yearlyPlan为0或者不存在，使用写死的数据
+                if (!savedData.equipment[index].yearlyPlan || savedData.equipment[index].yearlyPlan === 0) {
+                    item.yearlyPlan = originalYearlyPlan
+                }
             }
         })
     }
     
-    // 合并元件数据
-    if (savedData.components) {
+    // 合并元件数据（保留写死的年度计划）
+    if (Array.isArray(savedData.components) && savedData.components.length > 0) {
         merged.components.forEach((item, index) => {
             if (savedData.components[index]) {
+                const originalYearlyPlan = item.yearlyPlan // 保存原始年度计划
                 Object.assign(item, savedData.components[index])
+                // 如果API数据的yearlyPlan为0或者不存在，使用写死的数据
+                if (!savedData.components[index].yearlyPlan || savedData.components[index].yearlyPlan === 0) {
+                    item.yearlyPlan = originalYearlyPlan
+                }
             }
         })
     }
     
-    // 合并工程数据
-    if (savedData.engineering) {
+    // 合并工程数据（保留写死的年度计划）
+    if (Array.isArray(savedData.engineering) && savedData.engineering.length > 0) {
         merged.engineering.forEach((item, index) => {
             if (savedData.engineering[index]) {
+                const originalYearlyPlan = item.yearlyPlan // 保存原始年度计划
                 Object.assign(item, savedData.engineering[index])
+                // 如果API数据的yearlyPlan为0或者不存在，使用写死的数据
+                if (!savedData.engineering[index].yearlyPlan || savedData.engineering[index].yearlyPlan === 0) {
+                    item.yearlyPlan = originalYearlyPlan
+                }
             }
         })
     }
     
     return merged
+}
+
+// 将数组格式数据转换为对象格式
+const convertArrayToObjectFormat = (arrayData: any[]): IncomeData => {
+    // 先获取写死的基础数据结构
+    const baseData = getInitialData()
+    const result: IncomeData = {
+        equipment: [...baseData.equipment],
+        components: [...baseData.components],
+        engineering: [...baseData.engineering]
+    }
+    
+    arrayData.forEach(item => {
+        const targetArray = item.segment === '设备' ? result.equipment :
+                          item.segment === '元件' ? result.components : result.engineering
+        
+        // 找到对应的客户项目
+        const existingItem = targetArray.find(existing => existing.customer === item.customer)
+        if (existingItem) {
+            // 更新现有项目的数据，但保留写死的年度计划（除非API有更大的值）
+            existingItem.currentMonthIncome = item.currentMonthIncome || 0
+            existingItem.accumulatedIncome = item.accumulatedIncome || 0
+            existingItem.progress = item.progress || '/'
+            // 如果API的年度计划更大，则使用API的值
+            if (item.yearlyPlan && item.yearlyPlan > existingItem.yearlyPlan) {
+                existingItem.yearlyPlan = item.yearlyPlan
+            }
+        }
+    })
+    
+    return result
 }
 
 const incomeData = ref<IncomeData>(getInitialData())
@@ -273,25 +325,37 @@ const calculateAccumulatedIncome = (category: 'equipment' | 'components' | 'engi
 
 // 更新累计收入数据
 const updateAccumulatedIncome = () => {
+    // 安全检查数据结构
+    if (!incomeData.value || typeof incomeData.value !== 'object') {
+        console.error('incomeData无效，跳过累计收入更新')
+        return
+    }
+
     // 更新设备板块累计收入
-    incomeData.value.equipment.forEach(item => {
-        item.accumulatedIncome = calculateAccumulatedIncome('equipment', item.customer)
-    })
+    if (Array.isArray(incomeData.value.equipment)) {
+        incomeData.value.equipment.forEach(item => {
+            item.accumulatedIncome = calculateAccumulatedIncome('equipment', item.customer)
+        })
+    }
 
     // 更新元件板块累计收入
-    incomeData.value.components.forEach(item => {
-        item.accumulatedIncome = calculateAccumulatedIncome('components', item.customer)
-    })
+    if (Array.isArray(incomeData.value.components)) {
+        incomeData.value.components.forEach(item => {
+            item.accumulatedIncome = calculateAccumulatedIncome('components', item.customer)
+        })
+    }
 
     // 更新工程板块累计收入
-    incomeData.value.engineering.forEach(item => {
-        item.accumulatedIncome = calculateAccumulatedIncome('engineering', item.customer)
-    })
+    if (Array.isArray(incomeData.value.engineering)) {
+        incomeData.value.engineering.forEach(item => {
+            item.accumulatedIncome = calculateAccumulatedIncome('engineering', item.customer)
+        })
+    }
 }
 
 // 计算执行进度
 const calculateProgress = (yearlyPlan: number | string, accumulatedIncome: number): string => {
-  if (yearlyPlan === '缺少数据' || !yearlyPlan) return '/'
+  if (!yearlyPlan || yearlyPlan === 0) return '/'
   const planNumber = typeof yearlyPlan === 'string' ? parseFloat(yearlyPlan.replace(/,/g, '')) || 0 : yearlyPlan
   if (planNumber === 0) return '/'
   const progress = (accumulatedIncome / planNumber) * 100
@@ -303,31 +367,48 @@ watch(incomeData, () => {
   // 更新累计收入
   updateAccumulatedIncome()
 
+  // 安全检查数据结构
+  if (!incomeData.value || typeof incomeData.value !== 'object') {
+    console.error('incomeData无效，跳过进度更新')
+    return
+  }
+
   // 更新设备进度
-  incomeData.value.equipment.forEach(item => {
-    item.progress = calculateProgress(item.yearlyPlan, item.accumulatedIncome)
-  })
+  if (Array.isArray(incomeData.value.equipment)) {
+    incomeData.value.equipment.forEach(item => {
+      item.progress = calculateProgress(item.yearlyPlan, item.accumulatedIncome)
+    })
+  }
 
   // 更新元件进度
-  incomeData.value.components.forEach(item => {
-    item.progress = calculateProgress(item.yearlyPlan, item.accumulatedIncome)
-  })
+  if (Array.isArray(incomeData.value.components)) {
+    incomeData.value.components.forEach(item => {
+      item.progress = calculateProgress(item.yearlyPlan, item.accumulatedIncome)
+    })
+  }
 
   // 更新工程进度
-  incomeData.value.engineering.forEach(item => {
-    item.progress = calculateProgress(item.yearlyPlan, item.accumulatedIncome)
-  })
+  if (Array.isArray(incomeData.value.engineering)) {
+    incomeData.value.engineering.forEach(item => {
+      item.progress = calculateProgress(item.yearlyPlan, item.accumulatedIncome)
+    })
+  }
 }, { deep: true })
 
 // 计算当月收入总额
 const currentMonthTotal = computed(() => {
     let total = 0;
 
+    // 安全检查数据结构
+    if (!incomeData.value || typeof incomeData.value !== 'object') {
+        return total;
+    }
+
     // 计算所有项的当月收入总和
     const allItems = [
-        ...incomeData.value.equipment,
-        ...incomeData.value.components,
-        ...incomeData.value.engineering
+        ...(Array.isArray(incomeData.value.equipment) ? incomeData.value.equipment : []),
+        ...(Array.isArray(incomeData.value.components) ? incomeData.value.components : []),
+        ...(Array.isArray(incomeData.value.engineering) ? incomeData.value.engineering : [])
     ]
 
     allItems.forEach(item => {
@@ -341,11 +422,16 @@ const currentMonthTotal = computed(() => {
 const accumulatedTotal = computed(() => {
     let total = 0;
 
+    // 安全检查数据结构
+    if (!incomeData.value || typeof incomeData.value !== 'object') {
+        return total;
+    }
+
     // 计算所有项的累计收入总和
     const allItems = [
-        ...incomeData.value.equipment,
-        ...incomeData.value.components,
-        ...incomeData.value.engineering
+        ...(Array.isArray(incomeData.value.equipment) ? incomeData.value.equipment : []),
+        ...(Array.isArray(incomeData.value.components) ? incomeData.value.components : []),
+        ...(Array.isArray(incomeData.value.engineering) ? incomeData.value.engineering : [])
     ]
 
     allItems.forEach(item => {
@@ -360,14 +446,19 @@ const yearlyPlanTotal = computed(() => {
     let total = 0;
     let hasValidPlan = false;
     
+    // 安全检查数据结构
+    if (!incomeData.value || typeof incomeData.value !== 'object') {
+        return '缺少数据';
+    }
+    
     const allItems = [
-        ...incomeData.value.equipment,
-        ...incomeData.value.components,
-        ...incomeData.value.engineering
+        ...(Array.isArray(incomeData.value.equipment) ? incomeData.value.equipment : []),
+        ...(Array.isArray(incomeData.value.components) ? incomeData.value.components : []),
+        ...(Array.isArray(incomeData.value.engineering) ? incomeData.value.engineering : [])
     ]
     
     allItems.forEach(item => {
-        if (item.yearlyPlan !== '缺少数据' && item.yearlyPlan) {
+        if (item.yearlyPlan && item.yearlyPlan !== 0) {
             const planNumber = typeof item.yearlyPlan === 'string' ? 
                 parseFloat(item.yearlyPlan.replace(/,/g, '')) || 0 : 
                 item.yearlyPlan
@@ -376,12 +467,12 @@ const yearlyPlanTotal = computed(() => {
         }
     });
     
-    return hasValidPlan ? total.toFixed(2) : '缺少数据';
+    return hasValidPlan ? total.toFixed(2) : '0.00';
 });
 
 // 计算总体进度
 const totalProgress = computed(() => {
-    if (yearlyPlanTotal.value === '缺少数据') return '/'
+    if (yearlyPlanTotal.value === '0.00') return '/'
     const planTotal = parseFloat(yearlyPlanTotal.value.toString().replace(/,/g, '')) || 0
     if (planTotal === 0) return '/'
     const progress = (accumulatedTotal.value / planTotal) * 100
@@ -414,9 +505,24 @@ const loadData = async (targetPeriod: string) => {
         
         // 合并数据：专用表优先，系统表补充
         if (businessData) {
-            // 直接使用API返回的数据，因为已经包含预算信息
-            incomeData.value = businessData
-            console.log('使用API数据:', incomeData.value)
+            console.log('从API获取到的原始数据:', businessData)
+            // 验证API数据结构并合并，确保数据结构正确
+            if (businessData.equipment && businessData.components && businessData.engineering) {
+                // 即使API数据完整，也需要确保年度计划数据正确
+                incomeData.value = mergeData(getInitialData(), businessData)
+                console.log('✅ 使用完整API数据并保护年度计划:', incomeData.value)
+                console.log('设备第一项数据:', incomeData.value.equipment[0])
+            } else if (Array.isArray(businessData)) {
+                // 处理数组格式的数据，转换为对象格式
+                console.log('🔄 检测到数组格式数据，进行转换')
+                incomeData.value = convertArrayToObjectFormat(businessData)
+                console.log('✅ 转换后的数据:', incomeData.value)
+            } else {
+                // 如果数据结构不正确，使用合并策略
+                console.log('⚠️ API数据结构不完整，使用合并策略')
+                incomeData.value = mergeData(getInitialData(), businessData)
+                console.log('合并后的数据:', incomeData.value)
+            }
         } else if (formData) {
             // 如果API没有数据，使用form数据
             incomeData.value = mergeData(getInitialData(), formData)
@@ -424,18 +530,24 @@ const loadData = async (targetPeriod: string) => {
         } else {
             console.log('该期间暂无数据，保持年度计划但清空当月收入')
             // 保持现有的年度计划值，但将当月收入重置为0
-            incomeData.value.equipment.forEach(item => {
-                item.currentMonthIncome = 0
-                item.progress = '/'
-            })
-            incomeData.value.components.forEach(item => {
-                item.currentMonthIncome = 0
-                item.progress = '/'
-            })
-            incomeData.value.engineering.forEach(item => {
-                item.currentMonthIncome = 0
-                item.progress = '/'
-            })
+            if (Array.isArray(incomeData.value.equipment)) {
+                incomeData.value.equipment.forEach(item => {
+                    item.currentMonthIncome = 0
+                    item.progress = '/'
+                })
+            }
+            if (Array.isArray(incomeData.value.components)) {
+                incomeData.value.components.forEach(item => {
+                    item.currentMonthIncome = 0
+                    item.progress = '/'
+                })
+            }
+            if (Array.isArray(incomeData.value.engineering)) {
+                incomeData.value.engineering.forEach(item => {
+                    item.currentMonthIncome = 0
+                    item.progress = '/'
+                })
+            }
             console.log('保持年度计划数据:', incomeData.value)
         }
 
@@ -445,18 +557,24 @@ const loadData = async (targetPeriod: string) => {
     } catch (error) {
         console.error('加载数据失败:', error)
         // 保持现有的年度计划值，但将当月收入重置为0
-        incomeData.value.equipment.forEach(item => {
-            item.currentMonthIncome = 0
-            item.progress = '/'
-        })
-        incomeData.value.components.forEach(item => {
-            item.currentMonthIncome = 0
-            item.progress = '/'
-        })
-        incomeData.value.engineering.forEach(item => {
-            item.currentMonthIncome = 0
-            item.progress = '/'
-        })
+        if (Array.isArray(incomeData.value.equipment)) {
+            incomeData.value.equipment.forEach(item => {
+                item.currentMonthIncome = 0
+                item.progress = '/'
+            })
+        }
+        if (Array.isArray(incomeData.value.components)) {
+            incomeData.value.components.forEach(item => {
+                item.currentMonthIncome = 0
+                item.progress = '/'
+            })
+        }
+        if (Array.isArray(incomeData.value.engineering)) {
+            incomeData.value.engineering.forEach(item => {
+                item.currentMonthIncome = 0
+                item.progress = '/'
+            })
+        }
 
         // 即使出错也要尝试加载历史数据
         try {

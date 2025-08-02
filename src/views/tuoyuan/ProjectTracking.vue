@@ -184,8 +184,8 @@ const calculateCurrentCumulative = async (targetPeriod: string) => {
             
             item.currentCumulative = cumulativeAmount
             
-            // 计算执行进度（由于年度计划都是0，执行进度显示为0）
-            item.executionProgress = item.annualPlan > 0 ? (item.currentCumulative / item.annualPlan) * 100 : 0
+            // 计算执行进度（基于当期值）
+            item.executionProgress = item.annualPlan > 0 ? (item.currentPeriod / item.annualPlan) * 100 : 0
         }
         
     } catch (error) {
@@ -214,8 +214,8 @@ const totalData = computed(() => {
         total.currentCumulative += item.currentCumulative || 0
     })
     
-    // 计算总执行进度（由于年度计划都是0，执行进度显示为0）
-    total.executionProgress = total.annualPlan > 0 ? (total.currentCumulative / total.annualPlan) * 100 : 0
+    // 计算总执行进度（基于当期值）
+    total.executionProgress = total.annualPlan > 0 ? (total.currentPeriod / total.annualPlan) * 100 : 0
     
     return total
 })

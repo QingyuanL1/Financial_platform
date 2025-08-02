@@ -6,16 +6,41 @@ import BlankLayout from '@/layouts/BlankLayout.vue';
 export const frameIn: Array<RouteRecordRaw> = [
   {
     path: '/',
-    redirect: '/visualization',
+    redirect: '/shanghai-nanhua-lanling-electric',
     component: BasicLayout,
     children: [
       // ==================== 核心页面 ====================
       {
-        path: 'visualization',
-        name: 'Dashboard',
-        component: () => import('@/views/visualization/index.vue'),
+        path: 'home',
+        name: 'Home',
+        component: () => import('@/views/analytics/index.vue'),
         meta: {
           title: '首页',
+        },
+      },
+      // ==================== 公司页面 ====================
+      {
+        path: 'shanghai-nanhua-lanling-electric',
+        name: 'ShanghaiNanhuaLanlingElectric',
+        component: () => import('@/views/companies/ShanghaiNanhuaLanlingElectric.vue'),
+        meta: {
+          title: '上海南华兰陵电气有限公司',
+        },
+      },
+      {
+        path: 'shanghai-nanhua-lanling-industry',
+        name: 'ShanghaiNanhuaLanlingIndustry',
+        component: () => import('@/views/companies/ShanghaiNanhuaLanlingIndustry.vue'),
+        meta: {
+          title: '上海南华兰陵实业有限公司',
+        },
+      },
+      {
+        path: 'changzhou-tuoyuan-electric',
+        name: 'ChangzhouTuoyuanElectric',
+        component: () => import('@/views/companies/ChangzhouTuoyuanElectric.vue'),
+        meta: {
+          title: '常州拓源电气有限公司',
         },
       },
       {
@@ -985,13 +1010,81 @@ export const frameIn: Array<RouteRecordRaw> = [
           title: '存量指标分析',
         },
       },
-      // ==================== 数据分析中心 ====================
+      // ==================== 上海南华兰陵实业有限公司财务报表 ====================
       {
-        path: 'analytics',
-        name: 'AnalyticsCenter',
-        component: () => import('@/views/analytics/index.vue'),
+        path: 'shanghai-nanhua-lanling-industry/balance-sheet',
+        name: 'ShanghaiNanhuaLanlingIndustryBalanceSheet',
+        component: () => import('@/views/companies/financial-reports/ShanghaiNanhuaLanlingIndustryBalanceSheet.vue'),
         meta: {
-          title: '数据分析中心',
+          title: '上海南华兰陵实业有限公司-资产负债表',
+        },
+      },
+      {
+        path: 'shanghai-nanhua-lanling-industry/cash-flow',
+        name: 'ShanghaiNanhuaLanlingIndustryCashFlow',
+        component: () => import('@/views/companies/financial-reports/ShanghaiNanhuaLanlingIndustryCashFlow.vue'),
+        meta: {
+          title: '上海南华兰陵实业有限公司-现金流量表',
+        },
+      },
+      {
+        path: 'shanghai-nanhua-lanling-industry/income-statement',
+        name: 'ShanghaiNanhuaLanlingIndustryIncomeStatement',
+        component: () => import('@/views/companies/financial-reports/ShanghaiNanhuaLanlingIndustryIncomeStatement.vue'),
+        meta: {
+          title: '上海南华兰陵实业有限公司-利润表',
+        },
+      },
+
+      // ==================== 常州拓源电气有限公司财务报表 ====================
+      {
+        path: 'changzhou-tuoyuan-electric/balance-sheet',
+        name: 'ChangzhouTuoyuanElectricBalanceSheet',
+        component: () => import('@/views/companies/financial-reports/ChangzhouTuoyuanElectricBalanceSheet.vue'),
+        meta: {
+          title: '常州拓源电气有限公司-资产负债表',
+        },
+      },
+      {
+        path: 'changzhou-tuoyuan-electric/cash-flow',
+        name: 'ChangzhouTuoyuanElectricCashFlow',
+        component: () => import('@/views/companies/financial-reports/ChangzhouTuoyuanElectricCashFlow.vue'),
+        meta: {
+          title: '常州拓源电气有限公司-现金流量表',
+        },
+      },
+      {
+        path: 'changzhou-tuoyuan-electric/income-statement',
+        name: 'ChangzhouTuoyuanElectricIncomeStatement',
+        component: () => import('@/views/companies/financial-reports/ChangzhouTuoyuanElectricIncomeStatement.vue'),
+        meta: {
+          title: '常州拓源电气有限公司-利润表',
+        },
+      },
+
+      // ==================== 上海南华兰陵电气有限公司财务报表 ====================
+      {
+        path: 'shanghai-nanhua-lanling-electric/balance-sheet',
+        name: 'ShanghaiNanhuaLanlingElectricBalanceSheet',
+        component: () => import('@/views/example/index.vue'),
+        meta: {
+          title: '上海南华兰陵电气有限公司-资产负债表',
+        },
+      },
+      {
+        path: 'shanghai-nanhua-lanling-electric/cash-flow',
+        name: 'ShanghaiNanhuaLanlingElectricCashFlow',
+        component: () => import('@/views/example/CashFlowStatement.vue'),
+        meta: {
+          title: '上海南华兰陵电气有限公司-现金流量表',
+        },
+      },
+      {
+        path: 'shanghai-nanhua-lanling-electric/income-statement',
+        name: 'ShanghaiNanhuaLanlingElectricIncomeStatement',
+        component: () => import('@/views/example/IncomeStatement.vue'),
+        meta: {
+          title: '上海南华兰陵电气有限公司-利润表',
         },
       },
     ],

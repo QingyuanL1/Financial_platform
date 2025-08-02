@@ -403,7 +403,7 @@ const loadAllMonthsData = async (currentPeriod: string) => {
     }
 }
 
-// 计算累计库存：年初余量 + 当期新增（每个月）
+// 计算累计库存：年初余量 + 当期新增（每个月）- 当月收入（每月）（含税）
 const calculateCumulativeAmount = (category: string, customerType: string) => {
     // 获取年初余量
     let initialAmount = 0
@@ -442,8 +442,25 @@ const calculateCumulativeAmount = (category: string, customerType: string) => {
         totalIncrease += parseFloat(currentItem.currentIncrease?.toString()) || 0
     }
 
-    // 累计库存 = 年初余量 + 总新增
-    return initialAmount + totalIncrease
+    // 获取当月收入（含税）
+    const currentMonthIncome = getMainBusinessIncome(category, customerType)
+    let currentMonthIncomeWithTax = 0
+
+    if (currentMonthIncome > 0) {
+        // 根据板块确定税率
+        let taxRate = 0
+        if (category === 'equipment' || category === 'component') {
+            taxRate = 0.13 // 设备和元件板块为13%
+        } else if (category === 'project') {
+            taxRate = 0.09 // 工程板块为9%
+        }
+
+        // 当月收入（含税）= 当月收入 / (1 - 税率)
+        currentMonthIncomeWithTax = currentMonthIncome / (1 - taxRate)
+    }
+
+    // 累计库存 = 年初余量 + 总新增 - 当月收入（含税）
+    return initialAmount + totalIncrease - currentMonthIncomeWithTax
 }
 
 // 更新累计库存数据

@@ -30,7 +30,7 @@
                             <input v-model="data.equipment.shanghai.plan" type="text" class="w-full px-2 py-1 border rounded bg-gray-50" readonly />
                         </td>
                         <td class="border border-gray-300 px-4 py-2">
-                            <input v-model="data.equipment.shanghai.actual" type="text" class="w-full px-2 py-1 border rounded" @input="calculateDifference('equipment', 'shanghai')" />
+                            <span class="w-full px-2 py-1">{{ data.equipment.shanghai.actual }}</span>
                         </td>
                         <td class="border border-gray-300 px-4 py-2">
                             <input v-model="data.equipment.shanghai.difference" type="text" class="w-full px-2 py-1 border rounded bg-gray-50" readonly />
@@ -42,7 +42,7 @@
                             <input v-model="data.equipment.national.plan" type="text" class="w-full px-2 py-1 border rounded bg-gray-50" readonly />
                         </td>
                         <td class="border border-gray-300 px-4 py-2">
-                            <input v-model="data.equipment.national.actual" type="text" class="w-full px-2 py-1 border rounded" @input="calculateDifference('equipment', 'national')" />
+                            <span class="w-full px-2 py-1">{{ data.equipment.national.actual }}</span>
                         </td>
                         <td class="border border-gray-300 px-4 py-2">
                             <input v-model="data.equipment.national.difference" type="text" class="w-full px-2 py-1 border rounded bg-gray-50" readonly />
@@ -54,7 +54,7 @@
                             <input v-model="data.equipment.jiangsu.plan" type="text" class="w-full px-2 py-1 border rounded bg-gray-50" readonly />
                         </td>
                         <td class="border border-gray-300 px-4 py-2">
-                            <input v-model="data.equipment.jiangsu.actual" type="text" class="w-full px-2 py-1 border rounded" @input="calculateDifference('equipment', 'jiangsu')" />
+                            <span class="w-full px-2 py-1">{{ data.equipment.jiangsu.actual }}</span>
                         </td>
                         <td class="border border-gray-300 px-4 py-2">
                             <input v-model="data.equipment.jiangsu.difference" type="text" class="w-full px-2 py-1 border rounded bg-gray-50" readonly />
@@ -66,7 +66,7 @@
                             <input v-model="data.equipment.power.plan" type="text" class="w-full px-2 py-1 border rounded bg-gray-50" readonly />
                         </td>
                         <td class="border border-gray-300 px-4 py-2">
-                            <input v-model="data.equipment.power.actual" type="text" class="w-full px-2 py-1 border rounded" @input="calculateDifference('equipment', 'power')" />
+                            <span class="w-full px-2 py-1">{{ data.equipment.power.actual }}</span>
                         </td>
                         <td class="border border-gray-300 px-4 py-2">
                             <input v-model="data.equipment.power.difference" type="text" class="w-full px-2 py-1 border rounded bg-gray-50" readonly />
@@ -78,7 +78,7 @@
                             <input v-model="data.equipment.siemens.plan" type="text" class="w-full px-2 py-1 border rounded bg-gray-50" readonly />
                         </td>
                         <td class="border border-gray-300 px-4 py-2">
-                            <input v-model="data.equipment.siemens.actual" type="text" class="w-full px-2 py-1 border rounded" @input="calculateDifference('equipment', 'siemens')" />
+                            <span class="w-full px-2 py-1">{{ data.equipment.siemens.actual }}</span>
                         </td>
                         <td class="border border-gray-300 px-4 py-2">
                             <input v-model="data.equipment.siemens.difference" type="text" class="w-full px-2 py-1 border rounded bg-gray-50" readonly />
@@ -90,7 +90,7 @@
                             <input v-model="data.equipment.peers.plan" type="text" class="w-full px-2 py-1 border rounded bg-gray-50" readonly />
                         </td>
                         <td class="border border-gray-300 px-4 py-2">
-                            <input v-model="data.equipment.peers.actual" type="text" class="w-full px-2 py-1 border rounded" @input="calculateDifference('equipment', 'peers')" />
+                            <span class="w-full px-2 py-1">{{ data.equipment.peers.actual }}</span>
                         </td>
                         <td class="border border-gray-300 px-4 py-2">
                             <input v-model="data.equipment.peers.difference" type="text" class="w-full px-2 py-1 border rounded bg-gray-50" readonly />
@@ -102,7 +102,7 @@
                             <input v-model="data.equipment.users.plan" type="text" class="w-full px-2 py-1 border rounded bg-gray-50" readonly />
                         </td>
                         <td class="border border-gray-300 px-4 py-2">
-                            <input v-model="data.equipment.users.actual" type="text" class="w-full px-2 py-1 border rounded" @input="calculateDifference('equipment', 'users')" />
+                            <span class="w-full px-2 py-1">{{ data.equipment.users.actual }}</span>
                         </td>
                         <td class="border border-gray-300 px-4 py-2">
                             <input v-model="data.equipment.users.difference" type="text" class="w-full px-2 py-1 border rounded bg-gray-50" readonly />
@@ -114,7 +114,7 @@
                             <input v-model="data.equipment.others.plan" type="text" class="w-full px-2 py-1 border rounded bg-gray-50" readonly />
                         </td>
                         <td class="border border-gray-300 px-4 py-2">
-                            <input v-model="data.equipment.others.actual" type="text" class="w-full px-2 py-1 border rounded" @input="calculateDifference('equipment', 'others')" />
+                            <span class="w-full px-2 py-1">{{ data.equipment.others.actual }}</span>
                         </td>
                         <td class="border border-gray-300 px-4 py-2">
                             <input v-model="data.equipment.others.difference" type="text" class="w-full px-2 py-1 border rounded bg-gray-50" readonly />
@@ -129,7 +129,7 @@
                             <input v-model="data.components.users.plan" type="text" class="w-full px-2 py-1 border rounded bg-gray-50" readonly />
                         </td>
                         <td class="border border-gray-300 px-4 py-2">
-                            <input v-model="data.components.users.actual" type="text" class="w-full px-2 py-1 border rounded" @input="calculateDifference('components', 'users')" />
+                            <span class="w-full px-2 py-1">{{ data.components.users.actual }}</span>
                         </td>
                         <td class="border border-gray-300 px-4 py-2">
                             <input v-model="data.components.users.difference" type="text" class="w-full px-2 py-1 border rounded bg-gray-50" readonly />
@@ -144,7 +144,7 @@
                             <input v-model="data.engineering.package1.plan" type="text" class="w-full px-2 py-1 border rounded bg-gray-50" readonly />
                         </td>
                         <td class="border border-gray-300 px-4 py-2">
-                            <input v-model="data.engineering.package1.actual" type="text" class="w-full px-2 py-1 border rounded" @input="calculateDifference('engineering', 'package1')" />
+                            <span class="w-full px-2 py-1">{{ data.engineering.package1.actual }}</span>
                         </td>
                         <td class="border border-gray-300 px-4 py-2">
                             <input v-model="data.engineering.package1.difference" type="text" class="w-full px-2 py-1 border rounded bg-gray-50" readonly />
@@ -156,7 +156,7 @@
                             <input v-model="data.engineering.package2.plan" type="text" class="w-full px-2 py-1 border rounded bg-gray-50" readonly />
                         </td>
                         <td class="border border-gray-300 px-4 py-2">
-                            <input v-model="data.engineering.package2.actual" type="text" class="w-full px-2 py-1 border rounded" @input="calculateDifference('engineering', 'package2')" />
+                            <span class="w-full px-2 py-1">{{ data.engineering.package2.actual }}</span>
                         </td>
                         <td class="border border-gray-300 px-4 py-2">
                             <input v-model="data.engineering.package2.difference" type="text" class="w-full px-2 py-1 border rounded bg-gray-50" readonly />
@@ -168,7 +168,7 @@
                             <input v-model="data.engineering.domestic.plan" type="text" class="w-full px-2 py-1 border rounded bg-gray-50" readonly />
                         </td>
                         <td class="border border-gray-300 px-4 py-2">
-                            <input v-model="data.engineering.domestic.actual" type="text" class="w-full px-2 py-1 border rounded" @input="calculateDifference('engineering', 'domestic')" />
+                            <span class="w-full px-2 py-1">{{ data.engineering.domestic.actual }}</span>
                         </td>
                         <td class="border border-gray-300 px-4 py-2">
                             <input v-model="data.engineering.domestic.difference" type="text" class="w-full px-2 py-1 border rounded bg-gray-50" readonly />
@@ -180,7 +180,7 @@
                             <input v-model="data.engineering.international.plan" type="text" class="w-full px-2 py-1 border rounded bg-gray-50" readonly />
                         </td>
                         <td class="border border-gray-300 px-4 py-2">
-                            <input v-model="data.engineering.international.actual" type="text" class="w-full px-2 py-1 border rounded" @input="calculateDifference('engineering', 'international')" />
+                            <span class="w-full px-2 py-1">{{ data.engineering.international.actual }}</span>
                         </td>
                         <td class="border border-gray-300 px-4 py-2">
                             <input v-model="data.engineering.international.difference" type="text" class="w-full px-2 py-1 border rounded bg-gray-50" readonly />
@@ -192,7 +192,7 @@
                             <input v-model="data.engineering.others.plan" type="text" class="w-full px-2 py-1 border rounded bg-gray-50" readonly />
                         </td>
                         <td class="border border-gray-300 px-4 py-2">
-                            <input v-model="data.engineering.others.actual" type="text" class="w-full px-2 py-1 border rounded" @input="calculateDifference('engineering', 'others')" />
+                            <span class="w-full px-2 py-1">{{ data.engineering.others.actual }}</span>
                         </td>
                         <td class="border border-gray-300 px-4 py-2">
                             <input v-model="data.engineering.others.difference" type="text" class="w-full px-2 py-1 border rounded bg-gray-50" readonly />
@@ -206,7 +206,7 @@
                             <input v-model="data.total.plan" type="text" class="w-full px-2 py-1 border rounded font-bold bg-gray-50" readonly />
                         </td>
                         <td class="border border-gray-300 px-4 py-2">
-                            <input v-model="data.total.actual" type="text" class="w-full px-2 py-1 border rounded font-bold" @input="calculateDifference('total', '')" />
+                            <span class="w-full px-2 py-1 font-bold">{{ data.total.actual }}</span>
                         </td>
                         <td class="border border-gray-300 px-4 py-2">
                             <input v-model="data.total.difference" type="text" class="w-full px-2 py-1 border rounded font-bold bg-gray-50" readonly />
@@ -407,33 +407,61 @@ const loadRemarksData = async (targetPeriod: string) => {
 const loadData = async (targetPeriod: string) => {
     console.log('开始加载主营业务边际贡献率数据:', targetPeriod)
     try {
-        // 加载专用表数据（包含预算数据中间件处理）
-        const response = await fetch(`http://47.111.95.19:3000/business-contribution/${targetPeriod}`)
-        let businessData = null
-        if (response.ok) {
-            const result = await response.json()
-            businessData = result.data
-            console.log('专用表数据（含预算）:', businessData)
-        } else if (response.status !== 404) {
-            throw new Error('加载专用表数据失败')
+        // 首先尝试自动计算边际贡献率
+        let calculatedData = null
+        try {
+            console.log('尝试自动计算边际贡献率...')
+            const calculateResponse = await fetch(`http://47.111.95.19:3000/business-contribution/calculate/${targetPeriod}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+
+            if (calculateResponse.ok) {
+                const calculateResult = await calculateResponse.json()
+                if (calculateResult.success) {
+                    calculatedData = calculateResult.data
+                    console.log('自动计算成功:', calculatedData)
+                }
+            }
+        } catch (calcError) {
+            console.log('自动计算失败，将使用现有数据:', calcError.message)
         }
-        
-        // 再加载form_submissions表数据作为备份
-        const formResponse = await fetch(`http://47.111.95.19:3000/forms/submission/${MODULE_IDS.BUSINESS_CONTRIBUTION}/${targetPeriod}`)
-        let formData = null
-        if (formResponse.ok) {
-            const formResult = await formResponse.json()
-            formData = formResult.data?.formData
-            console.log('系统表数据:', formData)
+
+        // 如果自动计算成功，使用计算结果；否则加载现有数据
+        let finalData = calculatedData
+
+        if (!finalData) {
+            // 加载专用表数据（包含预算数据中间件处理）
+            const response = await fetch(`http://47.111.95.19:3000/business-contribution/${targetPeriod}`)
+            let businessData = null
+            if (response.ok) {
+                const result = await response.json()
+                businessData = result.data
+                console.log('专用表数据（含预算）:', businessData)
+            } else if (response.status !== 404) {
+                throw new Error('加载专用表数据失败')
+            }
+
+            // 再加载form_submissions表数据作为备份
+            const formResponse = await fetch(`http://47.111.95.19:3000/forms/submission/${MODULE_IDS.BUSINESS_CONTRIBUTION}/${targetPeriod}`)
+            let formData = null
+            if (formResponse.ok) {
+                const formResult = await formResponse.json()
+                formData = formResult.data?.formData
+                console.log('系统表数据:', formData)
+            }
+
+            // 合并数据：专用表（含预算）优先，系统表补充
+            finalData = businessData || formData
         }
-        
-        // 合并数据：专用表（含预算）优先，系统表补充
-        const finalData = businessData || formData
+
         if (finalData) {
-            console.log('API返回的原始数据:', finalData)
+            console.log('最终使用的数据:', finalData)
             const mergedData = mergeData(getInitialData(), finalData)
             console.log('合并后的数据:', mergedData)
-            
+
             // 逐个更新响应式数据以确保Vue能检测到变化
             Object.keys(mergedData).forEach(category => {
                 if (typeof mergedData[category] === 'object' && !Array.isArray(mergedData[category])) {
@@ -453,7 +481,7 @@ const loadData = async (targetPeriod: string) => {
                 }
             })
             console.log('响应式数据更新完成:', data)
-            
+
             // 重新计算所有偏差
             recalculateAllDifferences()
         } else {
@@ -477,7 +505,7 @@ const loadData = async (targetPeriod: string) => {
                 }
             })
             console.log('使用默认数据')
-            
+
             // 重新计算所有偏差
             recalculateAllDifferences()
         }
@@ -502,7 +530,7 @@ const loadData = async (targetPeriod: string) => {
                 }
             }
         })
-        
+
         // 重新计算所有偏差
         recalculateAllDifferences()
     }
@@ -584,10 +612,10 @@ const handleReset = () => {
     })
     remarks.value = ''
     suggestions.value = ''
-    
+
     // 重新计算所有偏差
     recalculateAllDifferences()
-    
+
     console.log('数据已重置:', data)
 }
 

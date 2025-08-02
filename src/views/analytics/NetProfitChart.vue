@@ -7,23 +7,34 @@
           <p class="text-gray-600 mt-2">年度计划与当期累计对比分析</p>
         </div>
   
-        <!-- 年份选择器 -->
+        <!-- 选择器区域 -->
         <div class="bg-white p-6 rounded-lg shadow-sm mb-8">
           <div class="flex items-center justify-between">
-            <h3 class="text-lg font-semibold text-gray-900">数据年份选择</h3>
-            <div class="flex items-center space-x-3">
-              <span class="text-sm text-gray-600">选择年份:</span>
-              <select v-model="selectedYear" @change="fetchData" 
-                      class="px-3 py-1.5 text-sm border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">
-                <option v-for="year in availableYears" :key="year" :value="year">{{ year }}年</option>
-              </select>
+            <div class="flex items-center space-x-4">
+              <h3 class="text-lg font-semibold text-gray-900">数据筛选</h3>
+              <div class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10V9a1 1 0 011-1h4a1 1 0 011 1v12M9 7h1m-1 4h1"></path>
+                </svg>
+                当前公司：{{ getSelectedCompanyName() }}
+              </div>
+            </div>
+            <div class="flex items-center space-x-6">
+              <!-- 年份选择器 -->
+              <div class="flex items-center space-x-3">
+                <span class="text-sm text-gray-600">选择年份:</span>
+                <select v-model="selectedYear" @change="fetchData"
+                        class="px-3 py-1.5 text-sm border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">
+                  <option v-for="year in availableYears" :key="year" :value="year">{{ year }}年</option>
+                </select>
+              </div>
             </div>
           </div>
         </div>
   
         <!-- 表一：利润总额指标进度条 -->
         <div class="bg-white rounded-lg shadow-sm p-6 mb-8">
-          <h3 class="text-lg font-semibold text-gray-900 mb-4">净利润指标</h3>
+          <h3 class="text-lg font-semibold text-gray-900 mb-4">{{ getSelectedCompanyName() }}净利润指标</h3>
           <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div class="text-center">
               <div class="text-2xl font-bold text-blue-600">{{ formatNumber(summary.yearlyPlan || 0) }} 万元</div>
@@ -49,7 +60,7 @@
         <!-- 表二：月度趋势图表 -->
         <div class="bg-white rounded-lg shadow-sm p-6 mb-8">
           <div class="flex justify-between items-center mb-6">
-            <h3 class="text-lg font-semibold text-gray-900">{{ selectedYear }}年月度趋势对比</h3>
+            <h3 class="text-lg font-semibold text-gray-900">{{ getSelectedCompanyName() }}{{ selectedYear }}年月度趋势对比</h3>
             <div class="flex items-center space-x-4">
               <div class="flex items-center">
                 <div class="w-4 h-4 bg-blue-500 rounded mr-2"></div>
@@ -70,8 +81,28 @@
   
   // 响应式数据
   const selectedYear = ref(new Date().getFullYear().toString())
+  const selectedCompany = ref('main')
   const availableYears = ref<string[]>([])
+  const availableCompanies = ref([
+    { key: 'main', name: '电气公司', table: 'income_statement' },
+    { key: 'nanhua', name: '南华公司', table: 'nanhua_income_statement' },
+    { key: 'tuoyuan', name: '拓源公司', table: 'tuoyuan_income_statement' }
+  ])
   const loading = ref(true)
+  
+  // 根据登录公司初始化选择的公司
+  const initializeCompany = () => {
+    const selectedCompanyName = localStorage.getItem('selectedCompany') || ''
+    
+    // 公司名称映射
+    const companyMapping: { [key: string]: string } = {
+      '常州拓源电气集团有限公司': 'tuoyuan',
+      '上海南华兰陵电气有限公司': 'main',
+      '上海南华兰陵实业有限公司': 'nanhua'
+    }
+    
+    selectedCompany.value = companyMapping[selectedCompanyName] || 'main'
+  }
   
   // 图表引用
   const chartRef = ref<HTMLElement | null>(null)
@@ -100,6 +131,12 @@
     if (rate >= 70) return 'text-blue-600'
     if (rate >= 50) return 'text-yellow-600'
     return 'text-red-600'
+  }
+
+  // 获取选中公司名称
+  const getSelectedCompanyName = () => {
+    const company = availableCompanies.value.find(c => c.key === selectedCompany.value)
+    return company ? company.name : '电气公司'
   }
   
   
@@ -143,9 +180,9 @@
   // 获取净利润数据
   const fetchNetProfitData = async () => {
     try {
-      console.log('Fetching net profit data for year:', selectedYear.value);
-      const response = await fetch(`http://47.111.95.19:3000/analytics/net-profit/${selectedYear.value}`);
-      
+      console.log('Fetching net profit data for year:', selectedYear.value, 'company:', selectedCompany.value);
+      const response = await fetch(`http://47.111.95.19:3000/analytics/net-profit/${selectedYear.value}?company=${selectedCompany.value}`);
+
       if (response.ok) {
         const result = await response.json();
         console.log('Net profit data response:', result);
@@ -299,6 +336,7 @@
   }
   
   onMounted(async () => {
+    initializeCompany()
     initAvailableYears()
     initCharts()
     await fetchData()

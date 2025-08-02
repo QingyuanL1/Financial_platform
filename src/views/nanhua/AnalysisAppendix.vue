@@ -34,10 +34,22 @@
                                 {{ formatNumber(item.yearBeginningBalance) }}
                             </td>
                             <td class="border border-gray-300 px-4 py-2">
-                                <input v-model="item.currentPeriodNewInvoicing" type="number" class="w-full px-2 py-1 border rounded text-right" step="0.01" />
+                                <input 
+                                    v-model.number="item.currentPeriodNewInvoicing" 
+                                    type="number" 
+                                    class="w-full px-2 py-1 border rounded text-right" 
+                                    step="0.01"
+                                    placeholder="可输入负数"
+                                />
                             </td>
                             <td class="border border-gray-300 px-4 py-2">
-                                <input v-model="item.currentPeriodAccumulatedCollection" type="number" class="w-full px-2 py-1 border rounded text-right" step="0.01" />
+                                <input 
+                                    v-model.number="item.currentPeriodAccumulatedCollection" 
+                                    type="number" 
+                                    class="w-full px-2 py-1 border rounded text-right" 
+                                    step="0.01"
+                                    placeholder="可输入负数"
+                                />
                             </td>
                             <td class="border border-gray-300 px-4 py-2 text-right">
                                 <span class="text-sm font-medium">{{ formatNumber(item.currentPeriodReceivableBalance) }}</span>
@@ -124,7 +136,7 @@ const remarks = ref('')
 const suggestions = ref('')
 
 const formatNumber = (value: number): string => {
-    if (value === 0) return '0.00'
+    if (isNaN(value)) return '0.00'
     return value.toFixed(2)
 }
 
@@ -155,10 +167,10 @@ const totalData = computed(() => {
     }
     
     analysisData.value.items.forEach(item => {
-        total.yearBeginningBalance += item.yearBeginningBalance || 0
-        total.currentPeriodNewInvoicing += item.currentPeriodNewInvoicing || 0
-        total.currentPeriodAccumulatedCollection += item.currentPeriodAccumulatedCollection || 0
-        total.currentPeriodReceivableBalance += item.currentPeriodReceivableBalance || 0
+        total.yearBeginningBalance += (isNaN(Number(item.yearBeginningBalance)) ? 0 : Number(item.yearBeginningBalance))
+        total.currentPeriodNewInvoicing += (isNaN(Number(item.currentPeriodNewInvoicing)) ? 0 : Number(item.currentPeriodNewInvoicing))
+        total.currentPeriodAccumulatedCollection += (isNaN(Number(item.currentPeriodAccumulatedCollection)) ? 0 : Number(item.currentPeriodAccumulatedCollection))
+        total.currentPeriodReceivableBalance += (isNaN(Number(item.currentPeriodReceivableBalance)) ? 0 : Number(item.currentPeriodReceivableBalance))
     })
     
     return total
@@ -180,10 +192,10 @@ const loadData = async (targetPeriod: string) => {
         if (result.data && result.data.items) {
             analysisData.value.items = result.data.items.map((item: any) => ({
                 customerAttribute: item.customerAttribute,
-                yearBeginningBalance: Number(item.yearBeginningBalance) || 0,
-                currentPeriodNewInvoicing: Number(item.currentPeriodNewInvoicing) || 0,
-                currentPeriodAccumulatedCollection: Number(item.currentPeriodAccumulatedCollection) || 0,
-                currentPeriodReceivableBalance: Number(item.currentPeriodReceivableBalance) || 0
+                yearBeginningBalance: isNaN(parseFloat(item.yearBeginningBalance)) ? 0 : parseFloat(item.yearBeginningBalance),
+                currentPeriodNewInvoicing: isNaN(parseFloat(item.currentPeriodNewInvoicing)) ? 0 : parseFloat(item.currentPeriodNewInvoicing),
+                currentPeriodAccumulatedCollection: isNaN(parseFloat(item.currentPeriodAccumulatedCollection)) ? 0 : parseFloat(item.currentPeriodAccumulatedCollection),
+                currentPeriodReceivableBalance: isNaN(parseFloat(item.currentPeriodReceivableBalance)) ? 0 : parseFloat(item.currentPeriodReceivableBalance)
             }))
         }
     } catch (error) {

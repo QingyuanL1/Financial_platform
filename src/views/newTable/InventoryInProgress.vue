@@ -275,7 +275,7 @@ const getCumulativeIncomeSync = (customerType: string, category: string): number
 // 计算完成率
 const calculateCompletionRate = (cumulative: number, budget: number): string => {
     if (budget === 0) return '0.00';
-    const rate = (cumulative / budget) * 100;
+    const rate = ((cumulative / budget) * 100) - 100;
     return rate.toFixed(2);
 }
 

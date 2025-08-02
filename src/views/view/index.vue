@@ -5,6 +5,12 @@
       <div class="mb-8">
         <h1 class="text-3xl font-bold text-gray-900">审阅</h1>
         <p class="text-gray-600 mt-2">选择需要查看的表单模块</p>
+        <div v-if="currentCompany" class="mt-3 inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10V9a1 1 0 011-1h4a1 1 0 011 1v12M9 7h1m-1 4h1"></path>
+          </svg>
+          当前公司：{{ currentCompany }}
+        </div>
       </div>
 
       <!-- 表单选择器 -->
@@ -251,6 +257,11 @@ const selectedPeriod = ref(new Date().toISOString().slice(0, 7))
 const submissionDetails = ref<any>(null)
 const attachments = ref<any[]>([])
 
+// 计算当前选择的公司
+const currentCompany = computed(() => {
+  return localStorage.getItem('selectedCompany') || ''
+})
+
 // 计算可用分类
 const availableCategories = computed(() => {
   const categories = [...new Set(modules.value.map(m => {
@@ -312,7 +323,27 @@ const categorizedModules = computed(() => {
 const fetchUserModules = async () => {
   try {
     const userId = userStore.userInfo?.id || 1
-    const response = await fetch(`http://47.111.95.19:3000/permissions/user/${userId}`)
+    
+    // 从localStorage获取用户选择的公司
+    const selectedCompany = localStorage.getItem('selectedCompany') || ''
+    
+    // 公司名称映射到数据库中的分类名
+    const companyMapping: { [key: string]: string } = {
+      '常州拓源电气集团有限公司': '拓源公司',
+      '上海南华兰陵电气有限公司': '南华公司',
+      '上海南华兰陵实业有限公司': '南华公司'
+    }
+    
+    let response
+    
+    // 如果用户选择了特定公司，使用公司特定的API
+    if (selectedCompany && companyMapping[selectedCompany]) {
+      const companyCategory = companyMapping[selectedCompany]
+      response = await fetch(`http://47.111.95.19:3000/permissions/user/${userId}/company/${encodeURIComponent(companyCategory)}`)
+    } else {
+      // 如果没有选择公司，使用通用API
+      response = await fetch(`http://47.111.95.19:3000/permissions/user/${userId}`)
+    }
     
     if (!response.ok) {
       throw new Error('获取用户权限失败')

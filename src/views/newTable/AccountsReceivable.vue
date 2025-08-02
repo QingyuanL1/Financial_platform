@@ -211,7 +211,7 @@ const formatNumber = (value: number): string => {
     return value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 }
 
-// 计算当期应收余额和累计收款
+// 计算当期应收余额、累计收款和累计新增开票
 const calculateCurrentBalance = (item: AccountsReceivableItem) => {
     // 移除逗号并转换为数字
     const initialBalance = parseFloat(item.initialBalance.replace(/,/g, '')) || 0
@@ -222,8 +222,12 @@ const calculateCurrentBalance = (item: AccountsReceivableItem) => {
     const totalReceipt = calculateTotalReceipt(item.customerType, getSegmentFromItem(item))
     item.totalReceipt = totalReceipt.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
     
-    // 计算当期应收余额 = 年初应收余额 + 当期新增开票 - 累计收款
-    const currentBalance = initialBalance + newInvoice - totalReceipt
+    // 计算累计新增开票
+    const totalNewInvoice = calculateTotalNewInvoice(item.customerType, getSegmentFromItem(item))
+    item.totalNewInvoice = totalNewInvoice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+    
+    // 计算当期应收余额 = 年初应收余额 + 累计新增开票 - 累计收款
+    const currentBalance = initialBalance + totalNewInvoice - totalReceipt
     
     // 格式化为带千分位的数字
     item.currentBalance = currentBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
@@ -258,6 +262,33 @@ const calculateTotalReceipt = (customerType: string, segment: string): number =>
     const currentItem = currentData.find(d => d.customerType === customerType)
     if (currentItem && currentItem.currentReceipt) {
         const currentValue = parseFloat(currentItem.currentReceipt.toString().replace(/,/g, '')) || 0
+        total += currentValue
+    }
+    
+    return total
+}
+
+// 计算累计新增开票
+const calculateTotalNewInvoice = (customerType: string, segment: string): number => {
+    let total = 0
+    
+    // 累加历史月份数据
+    for (const monthData of allMonthsData.value) {
+        if (monthData.period === period.value) continue
+        
+        const item = monthData.data?.find((d: any) => d.segment === segment && d.customerType === customerType)
+        if (item && item.newInvoice) {
+            const value = parseFloat(item.newInvoice.toString().replace(/,/g, '')) || 0
+            total += value
+        }
+    }
+    
+    // 加上当前月份的输入值
+    const currentData = segment === '设备' ? equipmentData.value : 
+                       segment === '元件' ? componentData.value : projectData.value
+    const currentItem = currentData.find(d => d.customerType === customerType)
+    if (currentItem && currentItem.newInvoice) {
+        const currentValue = parseFloat(currentItem.newInvoice.toString().replace(/,/g, '')) || 0
         total += currentValue
     }
     
@@ -349,10 +380,10 @@ const mergeData = (templateData: AccountsReceivableItem[], loadedData: any[], se
                 // 年初应收余额始终使用静态数据，不受后端数据影响
                 initialBalance: budgetValue.toString(),
                 newInvoice: loadedItem.newInvoice || '0',
-                totalNewInvoice: loadedItem.totalNewInvoice || '0',
+                totalNewInvoice: '0', // 累计新增开票需要重新计算，不使用后端数据
                 currentReceipt: loadedItem.currentReceipt || '0',
-                totalReceipt: loadedItem.totalReceipt || '0',
-                currentBalance: loadedItem.currentBalance || '0',
+                totalReceipt: '0', // 累计收款需要重新计算，不使用后端数据
+                currentBalance: loadedItem.currentBalance || budgetValue.toString(),
                 yearlyPlan: budgetValue
             }
         } else {
@@ -419,6 +450,24 @@ const updateAccumulatedReceipts = () => {
     })
 }
 
+// 更新累计新增开票数据
+const updateAccumulatedInvoices = () => {
+    equipmentData.value.forEach(item => {
+        const totalNewInvoice = calculateTotalNewInvoice(item.customerType, '设备')
+        item.totalNewInvoice = totalNewInvoice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+    })
+    
+    componentData.value.forEach(item => {
+        const totalNewInvoice = calculateTotalNewInvoice(item.customerType, '元件')
+        item.totalNewInvoice = totalNewInvoice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+    })
+    
+    projectData.value.forEach(item => {
+        const totalNewInvoice = calculateTotalNewInvoice(item.customerType, '工程')
+        item.totalNewInvoice = totalNewInvoice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+    })
+}
+
 // 加载数据
 const loadData = async (targetPeriod: string) => {
     try {
@@ -447,9 +496,10 @@ const loadData = async (targetPeriod: string) => {
         projectData.value = mergeData(getInitialProjectData(), loadedData, '工程')
         console.log('合并后的数据:', { equipmentData: equipmentData.value, componentData: componentData.value, projectData: projectData.value })
         
-        // 加载所有月份数据并计算累计收款
+        // 加载所有月份数据并计算累计收款和累计新增开票
         await loadAllMonthsData(targetPeriod)
         updateAccumulatedReceipts()
+        updateAccumulatedInvoices()
         
     } catch (error) {
         console.error('加载数据失败:', error)
@@ -462,6 +512,7 @@ const loadData = async (targetPeriod: string) => {
         try {
             await loadAllMonthsData(targetPeriod)
             updateAccumulatedReceipts()
+            updateAccumulatedInvoices()
         } catch (historyError) {
             console.error('加载历史数据失败:', historyError)
         }

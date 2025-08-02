@@ -3,7 +3,7 @@
     <div class="max-w-7xl mx-auto">
       <!-- 页面标题 -->
       <div class="mb-8">
-        <h1 class="text-3xl font-bold text-gray-900">数据分析中心</h1>
+        <h1 class="text-3xl font-bold text-gray-900">首页</h1>
         <p class="text-gray-600 mt-2">财务数据综合分析与可视化展示</p>
       </div>
 

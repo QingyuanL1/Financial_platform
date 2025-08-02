@@ -169,9 +169,23 @@ const handleLogin = async () => {
     storage.set('USER_INFO', data.data.user)
     userStore.setUserInfo(data.data.user)
     
-    // 如果有重定向参数，跳转到对应页面，否则跳转到首页
-    const redirectPath = route.query.redirect as string || '/'
-    router.push(redirectPath)
+    // 公司名称到路由的映射
+    const companyRouteMapping = {
+      '上海南华兰陵电气有限公司': '/shanghai-nanhua-lanling-electric',
+      '上海南华兰陵实业有限公司': '/shanghai-nanhua-lanling-industry', 
+      '常州拓源电气集团有限公司': '/changzhou-tuoyuan-electric'
+    }
+    
+    // 如果有重定向参数，优先跳转到重定向页面
+    if (route.query.redirect) {
+      router.push(route.query.redirect as string)
+    } else if (loginForm.company && companyRouteMapping[loginForm.company as keyof typeof companyRouteMapping]) {
+      // 否则直接跳转到用户选择的公司页面
+      router.push(companyRouteMapping[loginForm.company as keyof typeof companyRouteMapping])
+    } else {
+      // 如果没有选择公司或公司映射不存在，跳转到首页
+      router.push('/')
+    }
   } catch (error) {
     console.error('登录失败:', error)
     errorMessage.value = error instanceof Error ? error.message : '登录失败，请检查用户名和密码'
