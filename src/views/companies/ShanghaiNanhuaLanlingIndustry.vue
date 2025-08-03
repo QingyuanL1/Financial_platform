@@ -367,6 +367,7 @@ import * as echarts from 'echarts'
 import storage from 'store'
 import ContributionRateCard from '@/views/analytics/ContributionRateCard.vue'
 import ProfitMarginCard from '@/views/analytics/ProfitMarginCard.vue'
+import { safeFetch, handleApiError, retryWithDelay } from '@/utils/errorHandler'
 
 interface DashboardData {
   user: {
@@ -505,67 +506,113 @@ const safeCompletionRates = computed(() => {
 const fetchDashboardData = async () => {
   try {
     const userId = userStore.userInfo?.id || 1
-    
+
     // 从localStorage获取用户选择的公司
     const selectedCompany = localStorage.getItem('selectedCompany') || ''
-    
+
     // 公司名称映射到数据库中的分类名
     const companyMapping: { [key: string]: string } = {
       '常州拓源电气集团有限公司': '拓源公司',
       '上海南华兰陵电气有限公司': '南华公司',
       '上海南华兰陵实业有限公司': '南华公司'
     }
-    
+
     const companyName = companyMapping[selectedCompany] || '南华公司'  // 默认为南华公司
-    const response = await fetch(`http://47.111.95.19:3000/dashboard/company/${userId}/${encodeURIComponent(companyName)}`)
-    
-    if (!response.ok) {
-      throw new Error('获取仪表板数据失败')
-    }
-    
-    const result = await response.json()
+
+    // 使用重试机制获取数据
+    const result = await retryWithDelay(async () => {
+      const response = await safeFetch(
+        `http://47.111.95.19:3000/dashboard/company/${userId}/${encodeURIComponent(companyName)}`,
+        { method: 'GET' },
+        '获取仪表板数据'
+      )
+      return await response.json()
+    }, 2, 1000) // 最多重试2次，延迟1秒
+
     if (result.success) {
       dashboardData.value = result.data
+    } else {
+      console.warn('仪表板数据获取失败:', result.message)
+      // 提供默认数据
+      dashboardData.value = getDefaultDashboardData()
     }
   } catch (error) {
-    console.error('获取仪表板数据失败:', error)
+    const apiError = handleApiError(error, '获取仪表板数据')
+    console.error('获取仪表板数据失败:', apiError.message)
+    // 提供默认数据以防止页面崩溃
+    dashboardData.value = getDefaultDashboardData()
   }
 }
+
+// 提供默认仪表板数据的辅助函数
+const getDefaultDashboardData = (): DashboardData => ({
+  user: { username: '用户', email: '', role_name: '', role_description: '' },
+  current_period: new Date().toISOString().slice(0, 7),
+  overview: {
+    total_readable_modules: 0,
+    total_writable_modules: 0,
+    current_month_submitted: 0,
+    current_month_pending: 0,
+    completion_rate: 0
+  },
+  pending_forms: [],
+  category_statistics: []
+})
 
 const fetchAnnouncements = async () => {
   try {
     loadingAnnouncements.value = true
     const userId = userStore.userInfo?.id || 1
-    const response = await fetch(`http://47.111.95.19:3000/notifications/unread/${userId}?limit=5`)
-    
+    const response = await fetch(`http://47.111.95.19:3000/notifications/unread/${userId}?limit=5`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      // 添加超时处理
+      signal: AbortSignal.timeout(8000) // 8秒超时
+    })
+
     if (!response.ok) {
-      throw new Error('获取公告失败')
+      throw new Error(`获取公告失败: ${response.status} ${response.statusText}`)
     }
-    
+
     const result = await response.json()
-    if (result.success) {
+    if (result.success && Array.isArray(result.data)) {
       // 将通知数据转换为公告格式
       announcements.value = result.data.map((notification: any) => ({
         id: notification.id,
-        title: notification.title,
-        content: notification.content,
-        type: notification.type,
-        created_at: notification.created_at
+        title: notification.title || '无标题',
+        content: notification.content || '无内容',
+        type: notification.type || 'info',
+        created_at: notification.created_at || new Date().toISOString()
       }))
+    } else {
+      announcements.value = []
     }
   } catch (error) {
     console.error('获取公告失败:', error)
     // 如果新API失败，回退到旧的API
     try {
-      const response = await fetch('http://47.111.95.19:3000/dashboard/announcements')
+      const response = await fetch('http://47.111.95.19:3000/dashboard/announcements', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        signal: AbortSignal.timeout(8000)
+      })
       if (response.ok) {
         const result = await response.json()
-        if (result.success) {
+        if (result.success && Array.isArray(result.data)) {
           announcements.value = result.data
+        } else {
+          announcements.value = []
         }
+      } else {
+        announcements.value = []
       }
     } catch (fallbackError) {
       console.error('回退API也失败:', fallbackError)
+      announcements.value = []
     }
   } finally {
     loadingAnnouncements.value = false
@@ -702,14 +749,20 @@ const formatNumber = (num: number) => {
 const fetchROEData = async () => {
   try {
     const currentYear = new Date().getFullYear()
-    const response = await fetch(`http://47.111.95.19:3000/analytics/roe/${currentYear}`)
-    
+    const response = await fetch(`http://47.111.95.19:3000/analytics/roe/${currentYear}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      signal: AbortSignal.timeout(8000) // 8秒超时
+    })
+
     if (!response.ok) {
-      throw new Error('获取净资产收益率数据失败')
+      throw new Error(`获取净资产收益率数据失败: ${response.status} ${response.statusText}`)
     }
-    
+
     const result = await response.json()
-    if (result.success) {
+    if (result.success && result.data) {
       // 适配新的API响应格式
       const apiData = result.data
       roeData.value = {

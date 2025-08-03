@@ -66,11 +66,29 @@
           <div class="flex items-center space-x-4">
             <div class="flex items-center">
               <div class="w-4 h-4 bg-blue-500 rounded mr-2"></div>
-              <span class="text-sm text-gray-600">计入损益月度变化</span>
+              <span class="text-sm text-gray-600">累计计入损益</span>
+            </div>
+            <div class="flex items-center">
+              <div class="w-4 h-4 bg-green-500 rounded mr-2"></div>
+              <span class="text-sm text-gray-600">当月计入损益</span>
             </div>
           </div>
         </div>
         <div class="h-[500px]" ref="chartRef"></div>
+      </div>
+
+      <!-- 当月实际柱状图 -->
+      <div class="bg-white rounded-lg shadow-sm p-6 mb-8">
+        <div class="flex justify-between items-center mb-6">
+          <h3 class="text-lg font-semibold text-gray-900">{{ selectedYear }}年各板块当月计入损益对比</h3>
+          <div class="flex items-center space-x-4">
+            <div class="flex items-center">
+              <div class="w-4 h-4 bg-gradient-to-r from-blue-500 to-purple-500 rounded mr-2"></div>
+              <span class="text-sm text-gray-600">当月计入损益</span>
+            </div>
+          </div>
+        </div>
+        <div class="h-[400px]" ref="barChartRef"></div>
       </div>
 
       <!-- 分类占比图表 -->
@@ -112,10 +130,12 @@ const loading = ref(true)
 // 图表引用
 const chartRef = ref<HTMLElement | null>(null)
 const pieChartRef = ref<HTMLElement | null>(null)
+const barChartRef = ref<HTMLElement | null>(null)
 
 // 图表实例
 const chartInstance = ref<echarts.ECharts | null>(null)
 const pieChartInstance = ref<echarts.ECharts | null>(null)
+const barChartInstance = ref<echarts.ECharts | null>(null)
 
 // 数据
 const categories = {
@@ -285,11 +305,15 @@ const initCharts = () => {
   if (pieChartRef.value) {
     pieChartInstance.value = echarts.init(pieChartRef.value)
   }
+  if (barChartRef.value) {
+    barChartInstance.value = echarts.init(barChartRef.value)
+  }
 }
 
 // 更新所有图表
 const updateCharts = () => {
   updateTrendChart()
+  updateBarChart()
   updatePieChart()
 }
 
@@ -303,15 +327,15 @@ const updateTrendChart = () => {
   const hasData = months.value.length > 0 && Object.keys(monthlyData.value).length > 0
   
   if (hasData) {
-    // 为每个类别创建月度变化趋势线（累计执行）
+    // 为每个类别创建累计趋势线
     Object.keys(categories).forEach((key, index) => {
       const categoryData = monthlyData.value[key]
       const categoryInfo = categories[key as keyof typeof categories]
-      
+
       if (categoryData) {
-        // 计入损益趋势线
+        // 累计计入损益趋势线
         series.push({
-          name: `${categoryInfo.name}`,
+          name: `${categoryInfo.name}(累计)`,
           type: 'line',
           data: categoryData.cumulativeIncome,
           smooth: true,
@@ -328,6 +352,20 @@ const updateTrendChart = () => {
               { offset: 1, color: categoryInfo.color + '10' }
             ])
           }
+        })
+
+        // 当月计入损益柱状图
+        series.push({
+          name: `${categoryInfo.name}(当月)`,
+          type: 'bar',
+          data: categoryData.currentPeriodTotal,
+          itemStyle: {
+            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+              { offset: 0, color: categoryInfo.color + 'CC' },
+              { offset: 1, color: categoryInfo.color + '66' }
+            ])
+          },
+          barWidth: '60%'
         })
       }
     })
@@ -401,6 +439,113 @@ const updateTrendChart = () => {
   }
 
   chartInstance.value.setOption(option, true)
+}
+
+// 更新当月柱状图
+const updateBarChart = () => {
+  if (!barChartInstance.value) return
+
+  const hasData = months.value.length > 0 && Object.keys(monthlyData.value).length > 0
+  const series: any[] = []
+
+  if (hasData) {
+    // 为每个类别创建当月柱状图
+    Object.keys(categories).forEach((key, index) => {
+      const categoryData = monthlyData.value[key]
+      const categoryInfo = categories[key as keyof typeof categories]
+
+      if (categoryData && categoryData.currentPeriodTotal) {
+        series.push({
+          name: categoryInfo.name,
+          type: 'bar',
+          data: categoryData.currentPeriodTotal,
+          itemStyle: {
+            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+              { offset: 0, color: categoryInfo.color },
+              { offset: 1, color: categoryInfo.color + '80' }
+            ])
+          },
+          emphasis: {
+            itemStyle: {
+              color: categoryInfo.color
+            }
+          }
+        })
+      }
+    })
+  }
+
+  const option = {
+    title: {
+      text: `${selectedYear.value}年各板块当月计入损益对比`,
+      textStyle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: '#374151'
+      },
+      left: 'center',
+      top: 10
+    },
+    tooltip: {
+      trigger: 'axis',
+      axisPointer: {
+        type: 'shadow'
+      },
+      formatter: function(params: any[]) {
+        if (!hasData) return '暂无数据'
+        let result = `${params[0].name}<br/>`
+        params.forEach(param => {
+          result += `${param.seriesName}: ${formatNumber(param.value)} 万元<br/>`
+        })
+        return result
+      }
+    },
+    legend: {
+      top: 50,
+      type: 'scroll'
+    },
+    grid: {
+      left: '8%',
+      right: '5%',
+      bottom: '15%',
+      top: '25%',
+      containLabel: true
+    },
+    xAxis: {
+      type: 'category',
+      data: hasData ? months.value : [],
+      axisLabel: {
+        fontSize: 12
+      }
+    },
+    yAxis: {
+      type: 'value',
+      name: '万元',
+      nameTextStyle: {
+        fontSize: 12
+      },
+      axisLabel: {
+        formatter: function(value: number) {
+          return formatNumber(value)
+        },
+        fontSize: 12
+      }
+    },
+    series: hasData ? series : [],
+    graphic: hasData ? [] : [{
+      type: 'text',
+      left: 'center',
+      top: 'middle',
+      style: {
+        text: '暂无数据',
+        fontSize: 16,
+        fontWeight: 'bold',
+        fill: '#999'
+      }
+    }]
+  }
+
+  barChartInstance.value.setOption(option, true)
 }
 
 // 更新饼图
@@ -490,6 +635,7 @@ const updatePieChart = () => {
 // 处理窗口大小变化
 const handleResize = () => {
   chartInstance.value?.resize()
+  barChartInstance.value?.resize()
   pieChartInstance.value?.resize()
 }
 
@@ -502,6 +648,7 @@ onMounted(async () => {
 
 onUnmounted(() => {
   chartInstance.value?.dispose()
+  barChartInstance.value?.dispose()
   pieChartInstance.value?.dispose()
   window.removeEventListener('resize', handleResize)
 })

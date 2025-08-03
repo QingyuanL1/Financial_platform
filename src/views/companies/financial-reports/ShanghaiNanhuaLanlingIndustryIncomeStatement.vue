@@ -86,10 +86,23 @@ const suggestions = ref('')
 // 加载数据
 const loadData = async (targetPeriod: string) => {
   try {
-    const response = await fetch(`http://47.111.95.19:3000/financial-reports/nanhua/income-statement/${targetPeriod}`)
+    // 验证期间格式
+    if (!targetPeriod || targetPeriod === 'undefined' || !/^\d{4}-\d{2}$/.test(targetPeriod)) {
+      console.error('无效的期间格式:', targetPeriod)
+      return
+    }
+
+    const response = await fetch(`http://47.111.95.19:3000/financial-reports/nanhua/income-statement/${targetPeriod}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      signal: AbortSignal.timeout(10000) // 10秒超时
+    })
+
     if (!response.ok) {
       if (response.status !== 404) { // 404是正常的（新建报表时）
-        throw new Error('加载数据失败')
+        throw new Error(`加载数据失败: ${response.status} ${response.statusText}`)
       }
       return
     }

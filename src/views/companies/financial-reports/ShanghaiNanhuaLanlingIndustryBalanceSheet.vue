@@ -264,6 +264,11 @@ const moduleId = MODULE_IDS.NANHUA_BALANCE_SHEET
 const remarks = ref('')
 const suggestions = ref('')
 
+// 调试信息
+console.log('南华资产负债表组件挂载，当前期间:', period.value)
+console.log('模块ID:', moduleId)
+console.log('MODULE_IDS.NANHUA_BALANCE_SHEET:', MODULE_IDS.NANHUA_BALANCE_SHEET)
+
 const data = ref({
         assets: {
           current: [
@@ -590,19 +595,34 @@ const data = ref({
 // 定义函数（需要在watch之前定义）
 const loadData = async () => {
   try {
-    console.log(`正在加载资产负债表数据，期间: ${period.value.slice(0, 7)}`)
-    
+    const targetPeriod = period.value.slice(0, 7)
+    console.log(`正在加载资产负债表数据，期间: ${targetPeriod}`)
+
+    // 验证期间格式
+    if (!targetPeriod || targetPeriod === 'undefined' || !/^\d{4}-\d{2}$/.test(targetPeriod)) {
+      console.error('无效的期间格式:', targetPeriod)
+      return
+    }
+
     const response = await fetch(
-      `http://47.111.95.19:3000/financial-reports/nanhua/balance-sheet/${period.value.slice(0, 7)}`
+      `http://47.111.95.19:3000/financial-reports/nanhua/balance-sheet/${targetPeriod}`,
+      {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        signal: AbortSignal.timeout(10000) // 10秒超时
+      }
     )
+
     if (!response.ok) {
       if (response.status === 404) {
         console.log('该期间暂无数据，使用初始模板')
         return
       }
-      throw new Error('加载数据失败')
+      throw new Error(`加载数据失败: ${response.status} ${response.statusText}`)
     }
-    
+
     const result = await response.json()
     console.log('API返回数据:', result)
 
@@ -618,6 +638,10 @@ const loadData = async () => {
     }
   } catch (error) {
     console.error('加载数据失败:', error)
+    // 提供用户友好的错误提示
+    if (error.name === 'AbortError') {
+      console.error('请求超时，请检查网络连接')
+    }
   }
 }
 

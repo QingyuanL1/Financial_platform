@@ -264,6 +264,11 @@ const moduleId = MODULE_IDS.TUOYUAN_BALANCE_SHEET
 const remarks = ref('')
 const suggestions = ref('')
 
+// 调试信息
+console.log('拓源资产负债表组件挂载，当前期间:', period.value)
+console.log('模块ID:', moduleId)
+console.log('MODULE_IDS.TUOYUAN_BALANCE_SHEET:', MODULE_IDS.TUOYUAN_BALANCE_SHEET)
+
 const data = ref({
         assets: {
           current: [

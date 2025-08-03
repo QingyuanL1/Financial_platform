@@ -21,145 +21,7 @@
 
             <!-- 表格区域 -->
             <div class="p-6">
-                <div class="overflow-x-auto rounded-lg border border-gray-200">
-                    <table class="w-full border-collapse text-base">
-                        <thead class="sticky top-0 bg-white shadow-sm z-10">
-                            <tr class="bg-gray-50">
-                                <th rowspan="2"
-                                    class="border border-gray-200 px-6 py-4 text-center font-semibold text-gray-600 min-w-[100px]">
-                                    板块
-                                </th>
-                                <th rowspan="2"
-                                    class="border border-gray-200 px-6 py-4 text-center font-semibold text-gray-600 min-w-[120px]">
-                                    客户属性
-                                </th>
-                                <th rowspan="2"
-                                    class="border border-gray-200 px-6 py-4 text-center font-semibold text-gray-600 min-w-[120px]">
-                                    公司设计产能
-                                </th>
-                                <th rowspan="2"
-                                    class="border border-gray-200 px-6 py-4 text-center font-semibold text-gray-600 min-w-[120px]">
-                                    年度产能计划
-                                </th>
-                                <th rowspan="2"
-                                    class="border border-gray-200 px-6 py-4 text-center font-semibold text-gray-600 min-w-[120px]">
-                                    当期产能
-                                </th>
-                                <th rowspan="2"
-                                    class="border border-gray-200 px-6 py-4 text-center font-semibold text-gray-600 min-w-[120px]">
-                                    累计产能
-                                </th>
-                                <th rowspan="2"
-                                    class="border border-gray-200 px-6 py-4 text-center font-semibold text-gray-600 min-w-[120px]">
-                                    计划执行进度
-                                </th>
-                                <th rowspan="2"
-                                    class="border border-gray-200 px-6 py-4 text-center font-semibold text-gray-600 min-w-[120px]">
-                                    产能利用率
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <!-- 设备板块 -->
-                            <tr v-for="(item, index) in equipmentData" :key="`equipment-${index}`">
-                                <td v-if="index === 0" :rowspan="equipmentData.length"
-                                    class="border border-gray-200 px-6 py-3 text-center font-bold">设备</td>
-                                <td class="border border-gray-200 px-6 py-3 text-center">{{ item.customerType }}</td>
-                                <td class="border border-gray-200 px-6 py-3 text-right">
-                                    <input v-model.number="item.designCapacity" type="number"
-                                        class="w-full px-3 py-2 border rounded-lg text-right focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                        step="0.01" @input="calculateRates(item)" />
-                                </td>
-                                <td class="border border-gray-200 px-6 py-3 text-right">
-                                    <span class="w-full px-3 py-2">{{ formatNumber(item.yearlyPlan) }}</span>
-                                </td>
-                                <td class="border border-gray-200 px-6 py-3 text-right">
-                                    <input v-model.number="item.currentPeriod" type="number"
-                                        class="w-full px-3 py-2 border rounded-lg text-right focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                        step="0.01" />
-                                </td>
-                                <td class="border border-gray-200 px-6 py-3 text-right">
-                                    <span class="font-medium">{{ formatNumber(item.currentAccumulated) }}</span>
-                                </td>
-                                <td class="border border-gray-200 px-6 py-3 text-right">
-                                    {{ formatPercentage(item.executionProgress) }}
-                                </td>
-                                <td class="border border-gray-200 px-6 py-3 text-right">
-                                    {{ formatPercentage(item.utilizationRate) }}
-                                </td>
-                            </tr>
-                            
-                            <!-- 元件板块 -->
-                            <tr v-for="(item, index) in componentData" :key="`component-${index}`">
-                                <td v-if="index === 0" :rowspan="componentData.length"
-                                    class="border border-gray-200 px-6 py-3 text-center font-bold">元件</td>
-                                <td class="border border-gray-200 px-6 py-3 text-center">{{ item.customerType }}</td>
-                                <td class="border border-gray-200 px-6 py-3 text-right">
-                                    <input v-model.number="item.designCapacity" type="number"
-                                        class="w-full px-3 py-2 border rounded-lg text-right focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                        step="0.01" @input="calculateRates(item)" />
-                                </td>
-                                <td class="border border-gray-200 px-6 py-3 text-right">
-                                    <span class="w-full px-3 py-2">{{ formatNumber(item.yearlyPlan) }}</span>
-                                </td>
-                                <td class="border border-gray-200 px-6 py-3 text-right">
-                                    <input v-model.number="item.currentPeriod" type="number"
-                                        class="w-full px-3 py-2 border rounded-lg text-right focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                        step="0.01" />
-                                </td>
-                                <td class="border border-gray-200 px-6 py-3 text-right">
-                                    <span class="font-medium">{{ formatNumber(item.currentAccumulated) }}</span>
-                                </td>
-                                <td class="border border-gray-200 px-6 py-3 text-right">
-                                    {{ formatPercentage(item.executionProgress) }}
-                                </td>
-                                <td class="border border-gray-200 px-6 py-3 text-right">
-                                    {{ formatPercentage(item.utilizationRate) }}
-                                </td>
-                            </tr>
-                            
-                            <!-- 工程板块 -->
-                            <tr v-for="(item, index) in projectData" :key="`project-${index}`">
-                                <td v-if="index === 0" :rowspan="projectData.length"
-                                    class="border border-gray-200 px-6 py-3 text-center font-bold">工程</td>
-                                <td class="border border-gray-200 px-6 py-3 text-center">{{ item.customerType }}</td>
-                                <td class="border border-gray-200 px-6 py-3 text-right">
-                                    <input v-model.number="item.designCapacity" type="number"
-                                        class="w-full px-3 py-2 border rounded-lg text-right focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                        step="0.01" @input="calculateRates(item)" />
-                                </td>
-                                <td class="border border-gray-200 px-6 py-3 text-right">
-                                    <span class="w-full px-3 py-2">{{ formatNumber(item.yearlyPlan) }}</span>
-                                </td>
-                                <td class="border border-gray-200 px-6 py-3 text-right">
-                                    <input v-model.number="item.currentPeriod" type="number"
-                                        class="w-full px-3 py-2 border rounded-lg text-right focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                        step="0.01" />
-                                </td>
-                                <td class="border border-gray-200 px-6 py-3 text-right">
-                                    <span class="font-medium">{{ formatNumber(item.currentAccumulated) }}</span>
-                                </td>
-                                <td class="border border-gray-200 px-6 py-3 text-right">
-                                    {{ formatPercentage(item.executionProgress) }}
-                                </td>
-                                <td class="border border-gray-200 px-6 py-3 text-right">
-                                    {{ formatPercentage(item.utilizationRate) }}
-                                </td>
-                            </tr>
-                            
-                            <!-- 合计行 -->
-                            <tr class="bg-gray-50 font-bold">
-                                <td colspan="2" class="border border-gray-200 px-6 py-4 text-center">合计</td>
-                                <td class="border border-gray-200 px-6 py-4 text-right">{{ totalDesignCapacity.toLocaleString() }}</td>
-                                <td class="border border-gray-200 px-6 py-4 text-right">{{ totalYearlyPlan.toLocaleString() }}</td>
-                                <td class="border border-gray-200 px-6 py-4 text-right">{{ totalCurrentPeriod.toLocaleString() }}</td>
-                                <td class="border border-gray-200 px-6 py-4 text-right">{{ totalCurrentAccumulated.toLocaleString() }}</td>
-                                <td class="border border-gray-200 px-6 py-4 text-right">{{ averageExecutionProgress }}%</td>
-                                <td class="border border-gray-200 px-6 py-4 text-right">{{ averageUtilizationRate }}%</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
+                <ProductionValueTable v-model:tableData="tableData" />
                 
                 <!-- 文件上传和备注组件 -->
                 <FormAttachmentAndRemarks 
@@ -186,27 +48,19 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import FormAttachmentAndRemarks from '@/components/FormAttachmentAndRemarks.vue'
+import ProductionValueTable from '@/components/ProductionValueTable.vue'
 import { recordFormSubmission, loadRemarksAndSuggestions, MODULE_IDS } from '@/utils/formSubmissionHelper'
+import type { ProductionStructureData } from '@/types/production'
 
 const route = useRoute()
 const period = ref(route.query.period?.toString() || new Date().toISOString().slice(0, 7))
 const remarks = ref('')
 const suggestions = ref('')
 
-interface ProductionStructureData {
-    id: number
-    segment: string
-    customerType: string
-    designCapacity: number
-    yearlyPlan: number
-    currentPeriod: number
-    currentAccumulated: number
-    executionProgress: number  // 改为数字类型
-    utilizationRate: number    // 改为数字类型
-}
+
 
 // 初始数据模板
 const getInitialData = (): ProductionStructureData[] => [
@@ -230,12 +84,6 @@ const getInitialData = (): ProductionStructureData[] => [
 ]
 
 const tableData = ref<ProductionStructureData[]>(getInitialData())
-
-// 格式化数字为千分位格式
-const formatNumber = (value: number | string): string => {
-    const num = Number(value) || 0
-    return num.toLocaleString()
-}
 
 // 存储所有历史月份数据，用于计算累计产能
 const allMonthsData = ref<Array<{ period: string; data: ProductionStructureData[] }>>([])
@@ -296,79 +144,8 @@ const updateCurrentAccumulated = () => {
     tableData.value.forEach(item => {
         const cumulative = calculateCurrentAccumulated(item.segment, item.customerType)
         item.currentAccumulated = cumulative
-        // 重新计算比率
-        calculateRates(item)
     })
 }
-
-// 自动计算执行进度和产能利用率
-const calculateRates = (item: ProductionStructureData) => {
-    // 计划执行进度 = (当期产能累计 / 年度产能计划) * 100
-    if (item.yearlyPlan > 0) {
-        item.executionProgress = parseFloat(((item.currentAccumulated / item.yearlyPlan) * 100).toFixed(2))
-    } else {
-        item.executionProgress = 0
-    }
-    
-    // 产能利用率 = (当期产能累计 / 公司设计产能) * 100
-    if (item.designCapacity > 0) {
-        item.utilizationRate = parseFloat(((item.currentAccumulated / item.designCapacity) * 100).toFixed(2))
-    } else {
-        item.utilizationRate = 0
-    }
-}
-
-// 格式化百分比显示
-const formatPercentage = (value: number): string => {
-    if (isNaN(value) || value === null || value === undefined) {
-        return '0.00%'
-    }
-    return value.toFixed(2) + '%'
-}
-
-// 按板块分组数据
-const equipmentData = computed(() => {
-    return tableData.value.filter(item => item.segment === '设备')
-})
-
-const componentData = computed(() => {
-    return tableData.value.filter(item => item.segment === '元件')
-})
-
-const projectData = computed(() => {
-    return tableData.value.filter(item => item.segment === '工程')
-})
-
-// 计算合计数据
-const totalDesignCapacity = computed(() => {
-    return tableData.value.reduce((sum, item) => sum + Number(item.designCapacity || 0), 0)
-})
-
-const totalYearlyPlan = computed(() => {
-    return tableData.value.reduce((sum, item) => sum + Number(item.yearlyPlan || 0), 0)
-})
-
-const totalCurrentPeriod = computed(() => {
-    return tableData.value.reduce((sum, item) => sum + Number(item.currentPeriod || 0), 0)
-})
-
-const totalCurrentAccumulated = computed(() => {
-    return tableData.value.reduce((sum, item) => sum + Number(item.currentAccumulated || 0), 0)
-})
-
-const averageExecutionProgress = computed(() => {
-    if (totalYearlyPlan.value > 0) {
-        return parseFloat(((totalCurrentAccumulated.value / totalYearlyPlan.value) * 100).toFixed(2))
-    }
-    return 0
-})
-
-const averageUtilizationRate = computed(() => {
-    if (totalDesignCapacity.value > 0) {
-        return parseFloat(((totalCurrentAccumulated.value / totalDesignCapacity.value) * 100).toFixed(2))
-    }
-    return 0
-})
 
 // 数据合并函数
 const mergeData = (initialData: ProductionStructureData[], loadedData: ProductionStructureData[]): ProductionStructureData[] => {
@@ -426,17 +203,6 @@ const loadRemarksData = async () => {
     remarks.value = loadedRemarks
     suggestions.value = loadedSuggestions
 }
-
-// 监听数据变化，自动重新计算比率
-watch(() => tableData.value, () => {
-    tableData.value.forEach(item => calculateRates(item))
-}, { deep: true })
-
-// 监听期间变化
-watch(period, (newPeriod) => {
-    loadData(newPeriod)
-    loadRemarksData()
-})
 
 // 监听数据变化，自动更新累计产能
 watch(() => tableData.value, () => {
@@ -535,22 +301,5 @@ onMounted(() => {
     min-height: 100vh;
     background-color: #f8fafc;
     padding: 1rem;
-}
-
-.overflow-x-auto::-webkit-scrollbar {
-    height: 6px;
-}
-
-.overflow-x-auto::-webkit-scrollbar-track {
-    background: #f1f1f1;
-}
-
-.overflow-x-auto::-webkit-scrollbar-thumb {
-    background: #cbd5e1;
-    border-radius: 3px;
-}
-
-.overflow-x-auto::-webkit-scrollbar-thumb:hover {
-    background: #94a3b8;
 }
 </style>

@@ -444,6 +444,30 @@ export const frameIn: Array<RouteRecordRaw> = [
           title: '年度预算计划',
         },
       },
+      {
+        path: 'reports/monthly',
+        name: 'MonthlyReport',
+        component: () => import('@/views/reports/MonthlyReport.vue'),
+        meta: {
+          title: '月度经济运行报表',
+        },
+      },
+      {
+        path: 'reports/monthly-refactored',
+        name: 'MonthlyReportRefactored',
+        component: () => import('@/views/reports/MonthlyReportRefactored.vue'),
+        meta: {
+          title: '月度经济运行报表（重构版）',
+        },
+      },
+      {
+        path: 'test/datatable',
+        name: 'DataTableTest',
+        component: () => import('@/views/test/DataTableTest.vue'),
+        meta: {
+          title: 'DataTable 组件测试',
+        },
+      },
 
       // ==================== 上海南华实业公司 ====================
       {

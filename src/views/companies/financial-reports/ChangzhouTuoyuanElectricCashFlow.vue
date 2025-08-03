@@ -88,14 +88,27 @@ const suggestions = ref('')
 const loadData = async (targetPeriod: string) => {
     try {
         console.log(`正在加载现金流量表数据，期间: ${targetPeriod}`)
-        
-        const response = await fetch(`http://47.111.95.19:3000/financial-reports/tuoyuan/cash-flow/${targetPeriod}`)
+
+        // 验证期间格式
+        if (!targetPeriod || targetPeriod === 'undefined' || !/^\d{4}-\d{2}$/.test(targetPeriod)) {
+            console.error('无效的期间格式:', targetPeriod)
+            return
+        }
+
+        const response = await fetch(`http://47.111.95.19:3000/financial-reports/tuoyuan/cash-flow/${targetPeriod}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            signal: AbortSignal.timeout(10000) // 10秒超时
+        })
+
         if (!response.ok) {
             if (response.status === 404) {
                 console.log('该期间暂无数据，使用初始模板')
                 return
             }
-            throw new Error('加载数据失败')
+            throw new Error(`加载数据失败: ${response.status} ${response.statusText}`)
         }
         
         const result = await response.json()

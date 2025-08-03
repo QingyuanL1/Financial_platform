@@ -1,5 +1,6 @@
 // 表单提交记录工具
 import { useUserStore } from '@/stores/user'
+import { safeFetch, handleApiError } from '@/utils/errorHandler'
 
 export interface FormSubmissionData {
   userId: number
@@ -222,7 +223,12 @@ export const MODULE_IDS = {
   NANHUA_CONSTRUCTION_PLAN_EXECUTION: 325,// 南华施工计划执行情况
   NANHUA_CONSTRUCTION_EXECUTION_STATUS: 326, // 南华施工执行情况
   NANHUA_MAJOR_INVESTMENT: 327,           // 南华年度重大投资情况
-  
+
+  // 南华公司财务报表
+  NANHUA_BALANCE_SHEET: 501,              // 南华资产负债表
+  NANHUA_CASH_FLOW: 502,                  // 南华现金流量表
+  NANHUA_INCOME_STATEMENT: 503,           // 南华利润表
+
   // 拓源公司专用模块 (预留ID段: 400-499)
   TUOYUAN_NEW_ORDER_STRUCTURE: 401,       // 拓源新签订单结构与质量
   TUOYUAN_PROJECT_TRACKING: 402,          // 拓源项目跟踪情况
@@ -248,7 +254,12 @@ export const MODULE_IDS = {
   TUOYUAN_CONSTRUCTION_PLAN_EXECUTION: 422,  // 拓源施工计划执行情况
   TUOYUAN_MAJOR_INVESTMENT: 423,         // 拓源年度重大投资情况
   TUOYUAN_MAIN_BUSINESS_PRODUCTION_VALUE_SELF_CONSTRUCTION: 424,  // 拓源主营业务产值--自行施工情况分析
-  TUOYUAN_CONSTRUCTION_EXECUTION_STATUS: 425  // 拓源施工执行情况
+  TUOYUAN_CONSTRUCTION_EXECUTION_STATUS: 425, // 拓源施工执行情况
+
+  // 拓源公司财务报表
+  TUOYUAN_BALANCE_SHEET: 601,             // 拓源资产负债表
+  TUOYUAN_CASH_FLOW: 602,                 // 拓源现金流量表
+  TUOYUAN_INCOME_STATEMENT: 603           // 拓源利润表
 }
 
 // 模块ID到表单标题的映射
@@ -439,6 +450,19 @@ export async function uploadFile(
       throw new Error('用户信息不存在')
     }
 
+    // 验证必要参数
+    if (!file) {
+      throw new Error('文件不能为空')
+    }
+
+    if (!moduleId || moduleId === undefined) {
+      throw new Error('模块ID不能为空')
+    }
+
+    if (!period || period === undefined) {
+      throw new Error('期间不能为空')
+    }
+
     console.log('上传文件信息:', {
       fileName: file.name,
       fileSize: file.size,
@@ -452,15 +476,17 @@ export async function uploadFile(
     const formData = new FormData()
     formData.append('file', file)
     formData.append('moduleId', moduleId.toString())
-    formData.append('period', period)
+    formData.append('period', period.toString())
     formData.append('userId', userId.toString())
     if (description) {
-      formData.append('description', description)
+      formData.append('description', description.toString())
     }
 
+    // 使用自定义fetch，但不设置Content-Type（让浏览器自动设置multipart/form-data）
     const response = await fetch('http://47.111.95.19:3000/files/upload', {
       method: 'POST',
-      body: formData
+      body: formData,
+      signal: AbortSignal.timeout(30000) // 30秒超时，文件上传需要更长时间
     })
 
     console.log('上传响应状态:', response.status)
@@ -468,16 +494,24 @@ export async function uploadFile(
     if (!response.ok) {
       const errorText = await response.text()
       console.error('上传失败响应:', errorText)
-      throw new Error('文件上传失败')
+      const error = new Error(`文件上传失败: ${response.status} ${response.statusText}`)
+      ;(error as any).status = response.status
+      throw error
     }
 
     const result = await response.json()
     console.log('上传成功响应:', result)
+
+    if (!result.success) {
+      throw new Error(result.error || '文件上传失败')
+    }
+
     return result.data
 
   } catch (error) {
-    console.error('文件上传失败:', error)
-    throw error
+    const apiError = handleApiError(error, '文件上传')
+    console.error('文件上传失败:', apiError.message)
+    throw new Error(apiError.message)
   }
 }
 
@@ -552,8 +586,33 @@ export async function getFormRemarks(
   period: string
 ): Promise<{ remarks: string; suggestions: string }> {
   try {
+    // 验证参数
+    if (!moduleId || moduleId === undefined) {
+      console.warn('模块ID无效:', moduleId)
+      return { remarks: '', suggestions: '' }
+    }
+
+    if (!period || period === undefined || period === 'undefined') {
+      console.warn('期间无效:', period)
+      return { remarks: '', suggestions: '' }
+    }
+
+    // 确保期间格式正确
+    const formattedPeriod = period.toString().slice(0, 7)
+    if (!/^\d{4}-\d{2}$/.test(formattedPeriod)) {
+      console.warn('期间格式无效:', formattedPeriod)
+      return { remarks: '', suggestions: '' }
+    }
+
     const response = await fetch(
-      `http://47.111.95.19:3000/forms/submission/${moduleId}/${period}`
+      `http://47.111.95.19:3000/forms/submission/${moduleId}/${formattedPeriod}`,
+      {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        signal: AbortSignal.timeout(8000) // 8秒超时
+      }
     )
 
     if (response.status === 404) {
@@ -561,7 +620,7 @@ export async function getFormRemarks(
     }
 
     if (!response.ok) {
-      throw new Error('获取备注信息失败')
+      throw new Error(`获取备注信息失败: ${response.status} ${response.statusText}`)
     }
 
     const result = await response.json()
@@ -569,7 +628,7 @@ export async function getFormRemarks(
       remarks: result.data?.remarks || '',
       suggestions: result.data?.suggestions || ''
     }
-    
+
   } catch (error) {
     console.error('获取备注信息失败:', error)
     return { remarks: '', suggestions: '' }
