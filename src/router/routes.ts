@@ -453,14 +453,6 @@ export const frameIn: Array<RouteRecordRaw> = [
         },
       },
       {
-        path: 'reports/monthly-refactored',
-        name: 'MonthlyReportRefactored',
-        component: () => import('@/views/reports/MonthlyReportRefactored.vue'),
-        meta: {
-          title: '月度经济运行报表（重构版）',
-        },
-      },
-      {
         path: 'test/datatable',
         name: 'DataTableTest',
         component: () => import('@/views/test/DataTableTest.vue'),

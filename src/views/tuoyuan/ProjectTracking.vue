@@ -17,15 +17,13 @@
                         <th class="border border-gray-300 px-4 py-2 w-32">客户属性</th>
                         <th class="border border-gray-300 px-4 py-2 w-32">年度计划</th>
                         <th class="border border-gray-300 px-4 py-2 w-32">当期</th>
-                        <th class="border border-gray-300 px-4 py-2 w-32">当期累计</th>
                         <th class="border border-gray-300 px-4 py-2 w-32">执行进度</th>
                     </tr>
                 </thead>
                 <tbody>
                     <template v-for="(item, index) in trackingData.items" :key="`item-${index}`">
                         <tr>
-                            <td v-if="isFirstInSegment(index)" 
-                                :rowspan="getSegmentRowspan(item.segmentAttribute)" 
+                            <td v-if="isFirstInSegment(index)" :rowspan="getSegmentRowspan(item.segmentAttribute)"
                                 class="border border-gray-300 px-4 py-2 font-medium text-center">
                                 {{ item.segmentAttribute }}
                             </td>
@@ -36,16 +34,10 @@
                                 {{ formatNumber(item.annualPlan) }}
                             </td>
                             <td class="border border-gray-300 px-4 py-2">
-                                <input 
-                                    v-model="item.currentPeriod" 
-                                    type="number" 
-                                    class="w-full px-2 py-1 border rounded text-right" 
-                                    step="0.01"
-                                />
+                                <input v-model="item.currentPeriod" type="number"
+                                    class="w-full px-2 py-1 border rounded text-right" step="0.01" />
                             </td>
-                            <td class="border border-gray-300 px-4 py-2 text-right">
-                                {{ formatNumber(item.currentCumulative) }}
-                            </td>
+
                             <td class="border border-gray-300 px-4 py-2 text-right">
                                 <span class="text-sm font-medium">{{ formatPercentage(item.executionProgress) }}%</span>
                             </td>
@@ -62,9 +54,6 @@
                             {{ formatNumber(totalData.currentPeriod) }}
                         </td>
                         <td class="border border-gray-300 px-4 py-2 text-right">
-                            {{ formatNumber(totalData.currentCumulative) }}
-                        </td>
-                        <td class="border border-gray-300 px-4 py-2 text-right">
                             <span class="text-sm font-bold">{{ formatPercentage(totalData.executionProgress) }}%</span>
                         </td>
                     </tr>
@@ -73,12 +62,8 @@
         </div>
 
         <!-- 文件上传和备注组件 -->
-        <FormAttachmentAndRemarks 
-            :module-id="MODULE_IDS.TUOYUAN_PROJECT_TRACKING"
-            :period="period"
-            v-model:remarks="remarks"
-            v-model:suggestions="suggestions"
-        />
+        <FormAttachmentAndRemarks :module-id="MODULE_IDS.TUOYUAN_PROJECT_TRACKING" :period="period"
+            v-model:remarks="remarks" v-model:suggestions="suggestions" />
 
         <div class="mt-4 flex justify-end space-x-4">
             <button @click="handleSave" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
@@ -154,20 +139,20 @@ const calculateCurrentCumulative = async (targetPeriod: string) => {
     try {
         const [year] = targetPeriod.split('-')
         const currentMonth = parseInt(targetPeriod.split('-')[1])
-        
+
         // 为每个项目计算当期累计
         for (let item of trackingData.value.items) {
             let cumulativeAmount = 0
-            
+
             // 从1月累计到当前月份前一个月的"当期"
             for (let m = 1; m < currentMonth; m++) {
                 const monthPeriod = `${year}-${m.toString().padStart(2, '0')}`
                 try {
-                    const response = await fetch(`http://47.111.95.19:3000/tuoyuan-project-tracking/${monthPeriod}`)
+                    const response = await fetch(`http://127.0.0.1:3000/tuoyuan-project-tracking/${monthPeriod}`)
                     if (response.ok) {
                         const result = await response.json()
-                        const projectData = result.data.items.find((p: any) => 
-                            p.segmentAttribute === item.segmentAttribute && 
+                        const projectData = result.data.items.find((p: any) =>
+                            p.segmentAttribute === item.segmentAttribute &&
                             p.customerAttribute === item.customerAttribute
                         )
                         if (projectData) {
@@ -178,16 +163,16 @@ const calculateCurrentCumulative = async (targetPeriod: string) => {
                     console.warn(`无法加载${monthPeriod}的数据:`, error)
                 }
             }
-            
+
             // 加上当前月份的当期
             cumulativeAmount += item.currentPeriod || 0
-            
+
             item.currentCumulative = cumulativeAmount
-            
+
             // 计算执行进度（基于当期值）
             item.executionProgress = item.annualPlan > 0 ? (item.currentPeriod / item.annualPlan) * 100 : 0
         }
-        
+
     } catch (error) {
         console.error('计算当期累计失败:', error)
     }
@@ -207,23 +192,23 @@ const totalData = computed(() => {
         currentCumulative: 0,
         executionProgress: 0
     }
-    
+
     trackingData.value.items.forEach(item => {
         total.annualPlan += item.annualPlan || 0
         total.currentPeriod += item.currentPeriod || 0
         total.currentCumulative += item.currentCumulative || 0
     })
-    
+
     // 计算总执行进度（基于当期值）
     total.executionProgress = total.annualPlan > 0 ? (total.currentPeriod / total.annualPlan) * 100 : 0
-    
+
     return total
 })
 
 // 加载数据
 const loadData = async (targetPeriod: string) => {
     try {
-        const response = await fetch(`http://47.111.95.19:3000/tuoyuan-project-tracking/${targetPeriod}`)
+        const response = await fetch(`http://127.0.0.1:3000/tuoyuan-project-tracking/${targetPeriod}`)
         if (!response.ok) {
             if (response.status !== 404) {
                 throw new Error('加载数据失败')
@@ -243,7 +228,7 @@ const loadData = async (targetPeriod: string) => {
                 executionProgress: Number(item.executionProgress) || 0
             }))
         }
-        
+
         // 加载完数据后重新计算当期累计
         await calculateCurrentCumulative(targetPeriod)
     } catch (error) {
@@ -259,7 +244,7 @@ const resetToDefaultData = () => {
 // 加载备注和建议
 const loadRemarksAndSuggestions = async (targetPeriod: string) => {
     try {
-        const response = await fetch(`http://47.111.95.19:3000/forms/submission/${MODULE_IDS.TUOYUAN_PROJECT_TRACKING}/${targetPeriod}`)
+        const response = await fetch(`http://127.0.0.1:3000/forms/submission/${MODULE_IDS.TUOYUAN_PROJECT_TRACKING}/${targetPeriod}`)
         if (response.ok) {
             const result = await response.json()
             if (result.success && result.data) {
@@ -294,7 +279,7 @@ watch(period, async (newPeriod, oldPeriod) => {
 
 const handleSave = async () => {
     try {
-        const response = await fetch('http://47.111.95.19:3000/tuoyuan-project-tracking', {
+        const response = await fetch('http://127.0.0.1:3000/tuoyuan-project-tracking', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'

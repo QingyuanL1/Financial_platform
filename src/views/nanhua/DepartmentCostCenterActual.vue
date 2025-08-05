@@ -120,16 +120,14 @@ interface DepartmentData {
 const fixedData: DepartmentData = {
     departments: [
         { departmentName: '总经理室', yearlyBudget: 361.36, currentAmount: 0, accumulatedAmount: 0, executionProgress: 0, actualRatio: 0 },
-        { departmentName: '综合部', yearlyBudget: 461.45, currentAmount: 0, accumulatedAmount: 0, executionProgress: 0, actualRatio: 0 },
-        { departmentName: '财务部', yearlyBudget: 93.07, currentAmount: 0, accumulatedAmount: 0, executionProgress: 0, actualRatio: 0 },
+        { departmentName: '综管部', yearlyBudget: 461.45, currentAmount: 0, accumulatedAmount: 0, executionProgress: 0, actualRatio: 0 },
+        { departmentName: '经管部', yearlyBudget: 93.07, currentAmount: 0, accumulatedAmount: 0, executionProgress: 0, actualRatio: 0 },
         { departmentName: '安质部', yearlyBudget: 116.00, currentAmount: 0, accumulatedAmount: 0, executionProgress: 0, actualRatio: 0 },
         { departmentName: '工程部', yearlyBudget: 821.07, currentAmount: 0, accumulatedAmount: 0, executionProgress: 0, actualRatio: 0 },
         { departmentName: '运检部', yearlyBudget: 569.90, currentAmount: 0, accumulatedAmount: 0, executionProgress: 0, actualRatio: 0 },
         { departmentName: '营销部-销售', yearlyBudget: 125.13, currentAmount: 0, accumulatedAmount: 0, executionProgress: 0, actualRatio: 0 },
         { departmentName: '营销部-商务', yearlyBudget: 53.37, currentAmount: 0, accumulatedAmount: 0, executionProgress: 0, actualRatio: 0 },
-        { departmentName: '营销部-设备', yearlyBudget: 1048.86, currentAmount: 0, accumulatedAmount: 0, executionProgress: 0, actualRatio: 0 },
-        { departmentName: '营销部-采购', yearlyBudget: 0.47, currentAmount: 0, accumulatedAmount: 0, executionProgress: 0, actualRatio: 0 },
-        { departmentName: '营销部-后勤', yearlyBudget: 200.0, currentAmount: 0, accumulatedAmount: 0, executionProgress: 0, actualRatio: 0 }
+        { departmentName: '营销部-设备', yearlyBudget: 1048.86, currentAmount: 0, accumulatedAmount: 0, executionProgress: 0, actualRatio: 0 }
     ]
 }
 
@@ -151,6 +149,12 @@ const calculateAccumulatedAmount = async (targetPeriod: string) => {
         const [year, month] = targetPeriod.split('-')
         const currentMonth = parseInt(month)
         
+        // 部门名称映射
+        const departmentNameMap: Record<string, string> = {
+            '综合部': '综管部',
+            '财务部': '经管部'
+        }
+        
         // 为每个部门计算累计数据
         for (let department of departmentData.value.departments) {
             let accumulated = 0
@@ -159,10 +163,14 @@ const calculateAccumulatedAmount = async (targetPeriod: string) => {
             for (let m = 1; m <= currentMonth; m++) {
                 const monthPeriod = `${year}-${m.toString().padStart(2, '0')}`
                 try {
-                    const response = await fetch(`http://47.111.95.19:3000/department-cost-center-actual/${monthPeriod}`)
+                    const response = await fetch(`http://127.0.0.1:3000/department-cost-center-actual/${monthPeriod}`)
                     if (response.ok) {
                         const result = await response.json()
-                        const departmentItem = result.data.departments.find((d: any) => d.departmentName === department.departmentName)
+                        // 查找匹配的部门，考虑名称映射
+                        const departmentItem = result.data.departments.find((d: any) => {
+                            const mappedName = departmentNameMap[d.departmentName] || d.departmentName
+                            return mappedName === department.departmentName || d.departmentName === department.departmentName
+                        })
                         if (departmentItem) {
                             accumulated += departmentItem.currentAmount || 0
                         }
@@ -211,7 +219,7 @@ const totalData = computed(() => {
 // 加载数据
 const loadData = async (targetPeriod: string) => {
     try {
-        const response = await fetch(`http://47.111.95.19:3000/department-cost-center-actual/${targetPeriod}`)
+        const response = await fetch(`http://127.0.0.1:3000/department-cost-center-actual/${targetPeriod}`)
         if (!response.ok) {
             if (response.status !== 404) {
                 throw new Error('加载数据失败')
@@ -220,15 +228,25 @@ const loadData = async (targetPeriod: string) => {
         }
         const result = await response.json()
         if (result.data && result.data.departments) {
-            // 直接使用后端返回的数据
-            departmentData.value.departments = result.data.departments.map((item: any) => ({
-                departmentName: item.departmentName,
-                yearlyBudget: Number(item.yearlyBudget) || 0,
-                currentAmount: Number(item.currentAmount) || 0,
-                accumulatedAmount: Number(item.accumulatedAmount) || 0,
-                executionProgress: Number(item.executionProgress) || 0,
-                actualRatio: Number(item.actualRatio) || 0
-            }))
+            // 部门名称映射和过滤
+            const departmentNameMap: Record<string, string> = {
+                '综合部': '综管部',
+                '财务部': '经管部'
+            }
+            
+            const filteredDepartments = ['营销采购', '营销后勤']
+            
+            // 直接使用后端返回的数据，并进行名称映射和过滤
+            departmentData.value.departments = result.data.departments
+                .filter((item: any) => !filteredDepartments.includes(item.departmentName))
+                .map((item: any) => ({
+                    departmentName: departmentNameMap[item.departmentName] || item.departmentName,
+                    yearlyBudget: Number(item.yearlyBudget) || 0,
+                    currentAmount: Number(item.currentAmount) || 0,
+                    accumulatedAmount: Number(item.accumulatedAmount) || 0,
+                    executionProgress: Number(item.executionProgress) || 0,
+                    actualRatio: Number(item.actualRatio) || 0
+                }))
         }
     } catch (error) {
         console.error('加载数据失败:', error)
@@ -238,7 +256,7 @@ const loadData = async (targetPeriod: string) => {
 // 加载已保存的备注和建议
 const loadRemarksAndSuggestions = async (targetPeriod: string) => {
     try {
-        const response = await fetch(`http://47.111.95.19:3000/forms/submission/${MODULE_IDS.DEPARTMENT_COST_CENTER_ACTUAL}/${targetPeriod}`)
+        const response = await fetch(`http://127.0.0.1:3000/forms/submission/${MODULE_IDS.DEPARTMENT_COST_CENTER_ACTUAL}/${targetPeriod}`)
         if (response.ok) {
             const result = await response.json()
             if (result.success && result.data) {
@@ -273,7 +291,7 @@ watch(period, async (newPeriod, oldPeriod) => {
 
 const handleSave = async () => {
     try {
-        const response = await fetch('http://47.111.95.19:3000/department-cost-center-actual', {
+        const response = await fetch('http://127.0.0.1:3000/department-cost-center-actual', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'

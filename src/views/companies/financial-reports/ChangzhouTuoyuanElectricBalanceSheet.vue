@@ -598,7 +598,7 @@ const loadData = async () => {
     console.log(`正在加载资产负债表数据，期间: ${period.value.slice(0, 7)}`)
     
     const response = await fetch(
-      `http://47.111.95.19:3000/financial-reports/tuoyuan/balance-sheet/${period.value.slice(0, 7)}`
+      `http://127.0.0.1:3000/financial-reports/tuoyuan/balance-sheet/${period.value.slice(0, 7)}`
     )
     if (!response.ok) {
       if (response.status === 404) {
@@ -654,7 +654,7 @@ const save = async () => {
   try {
     console.log('保存资产负债表数据:', { period: period.value.slice(0, 7), data: data.value })
     
-    const response = await fetch('http://47.111.95.19:3000/financial-reports/tuoyuan/balance-sheet', {
+    const response = await fetch('http://127.0.0.1:3000/financial-reports/tuoyuan/balance-sheet', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

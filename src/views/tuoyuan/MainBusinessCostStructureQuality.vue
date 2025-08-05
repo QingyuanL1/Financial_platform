@@ -1,68 +1,76 @@
 <template>
     <div class="max-w-[1500px] mx-auto bg-white rounded-lg shadow-lg p-6">
         <div class="flex justify-between items-center mb-6">
-            <h1 class="text-2xl font-bold">主营业务成本结构与质量（按年度口径分解）</h1>
+            <h1 class="text-2xl font-bold">主营业务成本结构与质量（按年度计划口径分解）（单位：万元）</h1>
             <div class="flex items-center space-x-4">
-                <span class="text-sm text-gray-600">（单位：万元）</span>
-                <span class="text-xs text-gray-500">本年累计=前面各月当期值之和</span>
                 <input v-model="period" type="month" class="px-3 py-2 border rounded" />
             </div>
         </div>
 
         <div class="overflow-x-auto my-6">
+            <h2 class="text-xl font-semibold mb-3">对应年度计划:</h2>
             <table class="w-full border-collapse border border-gray-300">
                 <thead class="sticky top-0 bg-white">
                     <tr class="bg-gray-50">
-                        <th class="border border-gray-300 px-4 py-2 w-24">板块</th>
-                        <th class="border border-gray-300 px-4 py-2 w-32">客户属性</th>
-                        <th class="border border-gray-300 px-4 py-2 w-28">年度计划</th>
-                        <th class="border border-gray-300 px-4 py-2 w-28">当期</th>
-                        <th class="border border-gray-300 px-4 py-2 w-28">本年累计</th>
-                        <th class="border border-gray-300 px-4 py-2 w-28">计划执行进度</th>
-                        <th class="border border-gray-300 px-4 py-2 w-28">占主营收入比</th>
+                        <th class="border border-gray-300 px-4 py-2">板块</th>
+                        <th class="border border-gray-300 px-4 py-2">客户属性</th>
+                        <th class="border border-gray-300 px-4 py-2">年度计划</th>
+                        <th class="border border-gray-300 px-4 py-2">计划执行率</th>
+                        <th class="border border-gray-300 px-4 py-2">当期直接费用</th>
+                        <th class="border border-gray-300 px-4 py-2">累计直接费用</th>
+                        <th class="border border-gray-300 px-4 py-2">当期制造费用/间接成本</th>
+                        <th class="border border-gray-300 px-4 py-2">累计制造费用/间接成本</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <template v-for="(item, index) in costStructureData.items" :key="`cost-${index}`">
+                    <!-- 设备板块 -->
+                    <template v-for="(item, index) in equipmentData" :key="`equipment-${index}`">
                         <tr>
-                            <td v-if="isFirstInSegment(index)" 
-                                :rowspan="getSegmentRowspan(item.segmentAttribute)" 
-                                class="border border-gray-300 px-4 py-2 font-medium text-center">
-                                {{ item.segmentAttribute }}
+                            <td v-if="index === 0" class="border border-gray-300 px-4 py-2 text-center" :rowspan="equipmentData.length">
+                                设备
+                            </td>
+                            <td class="border border-gray-300 px-4 py-2">{{ item.customerType }}</td>
+                            <td class="border border-gray-300 px-4 py-2 bg-gray-50 text-right">
+                                <span class="px-2 py-1 text-gray-700">{{ formatNumber(item.yearlyPlan) }}</span>
+                            </td>
+                            <td class="border border-gray-300 px-4 py-2 bg-gray-50 text-right">
+                                <span class="px-2 py-1 text-gray-700">{{ calculateExecutionRate(item.cumulativeMaterialCost + item.cumulativeLaborCost, item.yearlyPlan) }}%</span>
                             </td>
                             <td class="border border-gray-300 px-4 py-2">
-                                {{ item.customerAttribute }}
+                                <input v-model.number="item.currentMaterialCost" type="number" class="w-full px-2 py-1 border rounded" step="0.01" />
                             </td>
-                            <td class="border border-gray-300 px-4 py-2 text-right">{{ formatNumber(item.yearlyPlan) }}</td>
+                            <td class="border border-gray-300 px-4 py-2 bg-gray-50">
+                                <span class="px-2 py-1 text-gray-700">{{ formatNumber(item.cumulativeMaterialCost) }}</span>
+                            </td>
                             <td class="border border-gray-300 px-4 py-2">
-                                <input 
-                                    v-model="item.currentPeriod" 
-                                    type="number" 
-                                    class="w-full px-2 py-1 border rounded text-right" 
-                                    step="0.01"
-                                />
+                                <input v-model.number="item.currentLaborCost" type="number" class="w-full px-2 py-1 border rounded" step="0.01" />
                             </td>
-                            <td class="border border-gray-300 px-4 py-2 text-right">{{ formatNumber(item.yearlyAccumulated) }}</td>
-                            <td class="border border-gray-300 px-4 py-2 text-right">
-                                <span class="text-sm font-medium">{{ formatPercentage(item.yearlyPlanCompletionRate) }}%</span>
-                            </td>
-                            <td class="border border-gray-300 px-4 py-2 text-right">
-                                <span class="text-sm font-medium">{{ formatPercentage(item.cumulativeRatio) }}%</span>
+                            <td class="border border-gray-300 px-4 py-2 bg-gray-50">
+                                <span class="px-2 py-1 text-gray-700">{{ formatNumber(item.cumulativeLaborCost) }}</span>
                             </td>
                         </tr>
                     </template>
 
                     <!-- 合计行 -->
                     <tr class="bg-gray-50 font-bold">
-                        <td colspan="2" class="border border-gray-300 px-4 py-2 text-center">合计</td>
-                        <td class="border border-gray-300 px-4 py-2 text-right">{{ formatNumber(totalData.yearlyPlan) }}</td>
-                        <td class="border border-gray-300 px-4 py-2 text-right">{{ formatNumber(totalData.currentPeriod) }}</td>
-                        <td class="border border-gray-300 px-4 py-2 text-right">{{ formatNumber(totalData.yearlyAccumulated) }}</td>
-                        <td class="border border-gray-300 px-4 py-2 text-right">
-                            <span class="text-sm font-bold">{{ formatPercentage(totalData.yearlyPlanCompletionRate) }}%</span>
+                        <td class="border border-gray-300 px-4 py-2 text-center" colspan="2">合计</td>
+                        <td class="border border-gray-300 px-4 py-2">
+                            {{ formatNumber(totalData.yearlyPlan) }}
                         </td>
                         <td class="border border-gray-300 px-4 py-2 text-right">
-                            <span class="text-sm font-bold">100.00%</span>
+                            {{ calculateExecutionRate(totalData.cumulativeMaterialCost + totalData.cumulativeLaborCost, totalData.yearlyPlan) }}%
+                        </td>
+                        <td class="border border-gray-300 px-4 py-2">
+                            {{ formatNumber(totalData.currentMaterialCost) }}
+                        </td>
+                        <td class="border border-gray-300 px-4 py-2">
+                            {{ formatNumber(totalData.cumulativeMaterialCost) }}
+                        </td>
+                        <td class="border border-gray-300 px-4 py-2">
+                            {{ formatNumber(totalData.currentLaborCost) }}
+                        </td>
+                        <td class="border border-gray-300 px-4 py-2">
+                            {{ formatNumber(totalData.cumulativeLaborCost) }}
                         </td>
                     </tr>
                 </tbody>
@@ -97,170 +105,224 @@ import FormAttachmentAndRemarks from '@/components/FormAttachmentAndRemarks.vue'
 const route = useRoute()
 const period = ref(route.query.period?.toString() || new Date().toISOString().slice(0, 7))
 
-interface CostStructureItem {
-    segmentAttribute: string;
-    customerAttribute: string;
+interface CostItem {
+    customerType: string;
     yearlyPlan: number;
-    currentPeriod: number;
-    yearlyAccumulated: number;
-    yearlyPlanCompletionRate: number;
-    cumulativeRatio: number;
+    planExecutionRate: number;
+    currentMaterialCost: number;
+    cumulativeMaterialCost: number;
+    currentLaborCost: number;
+    cumulativeLaborCost: number;
 }
 
-interface CostStructureData {
-    items: CostStructureItem[];
-}
-
-const fixedPlanData: CostStructureData = {
-    items: [
-        { segmentAttribute: '设备', customerAttribute: '电业项目', yearlyPlan: 0, currentPeriod: 0, yearlyAccumulated: 0, yearlyPlanCompletionRate: 0, cumulativeRatio: 0 },
-        { segmentAttribute: '设备', customerAttribute: '用户项目', yearlyPlan: 0, currentPeriod: 0, yearlyAccumulated: 0, yearlyPlanCompletionRate: 0, cumulativeRatio: 0 },
-        { segmentAttribute: '设备', customerAttribute: '贸易', yearlyPlan: 0, currentPeriod: 0, yearlyAccumulated: 0, yearlyPlanCompletionRate: 0, cumulativeRatio: 0 },
-        { segmentAttribute: '设备', customerAttribute: '代理设备', yearlyPlan: 0, currentPeriod: 0, yearlyAccumulated: 0, yearlyPlanCompletionRate: 0, cumulativeRatio: 0 },
-        { segmentAttribute: '设备', customerAttribute: '代理工程', yearlyPlan: 0, currentPeriod: 0, yearlyAccumulated: 0, yearlyPlanCompletionRate: 0, cumulativeRatio: 0 },
-        { segmentAttribute: '设备', customerAttribute: '代理设计', yearlyPlan: 0, currentPeriod: 0, yearlyAccumulated: 0, yearlyPlanCompletionRate: 0, cumulativeRatio: 0 }
-    ]
-}
-
-const costStructureData = ref<CostStructureData>(JSON.parse(JSON.stringify(fixedPlanData)))
-const remarks = ref('')
-const suggestions = ref('')
-
-const formatNumber = (value: number): string => {
-    if (value === 0) return '0.00'
-    return value.toFixed(2)
-}
-
-const formatPercentage = (value: number): string => {
-    if (value === 0) return '0.00'
-    return value.toFixed(2)
-}
-
-// 判断是否是板块的第一行
-const isFirstInSegment = (index: number): boolean => {
-    if (index === 0) return true
-    return costStructureData.value.items[index].segmentAttribute !== costStructureData.value.items[index - 1].segmentAttribute
-}
-
-// 计算板块的行数
-const getSegmentRowspan = (segmentAttribute: string): number => {
-    return costStructureData.value.items.filter(item => item.segmentAttribute === segmentAttribute).length
-}
-
-// 计算本年累计
-const calculateYearlyAccumulated = async (targetPeriod: string) => {
-    try {
-        const [year] = targetPeriod.split('-')
-        const currentMonth = parseInt(targetPeriod.split('-')[1])
-        
-        // 为每个成本项目计算本年累计
-        for (let item of costStructureData.value.items) {
-            let totalCurrentPeriod = 0
-            
-            // 从1月累计到当前月份的所有当期值
-            for (let m = 1; m <= currentMonth; m++) {
-                const monthPeriod = `${year}-${m.toString().padStart(2, '0')}`
-                try {
-                    const response = await fetch(`http://47.111.95.19:3000/tuoyuan-main-business-cost-structure-quality/${monthPeriod}`)
-                    if (response.ok) {
-                        const result = await response.json()
-                        const costData = result.data.items.find((c: any) => 
-                            c.segmentAttribute === item.segmentAttribute && 
-                            c.customerAttribute === item.customerAttribute
-                        )
-                        if (costData) {
-                            totalCurrentPeriod += costData.currentPeriod || 0
-                        }
-                    }
-                } catch (error) {
-                    console.warn(`无法加载${monthPeriod}的数据:`, error)
-                }
-            }
-            
-            item.yearlyAccumulated = totalCurrentPeriod
-            
-            // 计算年度计划完成率 = 本年累计 / 年度计划 * 100%
-            item.yearlyPlanCompletionRate = item.yearlyPlan > 0 ? (item.yearlyAccumulated / item.yearlyPlan) * 100 : 0
-        }
-        
-        // 计算累计占比
-        const totalYearlyAccumulated = costStructureData.value.items.reduce((sum, item) => sum + item.yearlyAccumulated, 0)
-        costStructureData.value.items.forEach(item => {
-            item.cumulativeRatio = totalYearlyAccumulated > 0 ? (item.yearlyAccumulated / totalYearlyAccumulated) * 100 : 0
-        })
-        
-    } catch (error) {
-        console.error('计算本年累计失败:', error)
+// 拓源公司的静态年度计划数据
+const staticYearlyPlans = {
+    equipment: {
+        '电业项目': 0,
+        '用户项目': 0,
+        '贸易': 0,
+        '代理设备': 0,
+        '代理工程': 0,
+        '代理设计': 0
     }
 }
 
-// 监听数据变化，自动重新计算累计值
-watch(() => costStructureData.value.items, async (newItems) => {
-    await calculateYearlyAccumulated(period.value)
-}, { deep: true })
+// 获取初始数据模板
+const getInitialData = () => {
+    return {
+        equipment: [
+            { customerType: '电业项目', yearlyPlan: staticYearlyPlans.equipment['电业项目'], planExecutionRate: 0, currentMaterialCost: 0, cumulativeMaterialCost: 0, currentLaborCost: 0, cumulativeLaborCost: 0 },
+            { customerType: '用户项目', yearlyPlan: staticYearlyPlans.equipment['用户项目'], planExecutionRate: 0, currentMaterialCost: 0, cumulativeMaterialCost: 0, currentLaborCost: 0, cumulativeLaborCost: 0 },
+            { customerType: '贸易', yearlyPlan: staticYearlyPlans.equipment['贸易'], planExecutionRate: 0, currentMaterialCost: 0, cumulativeMaterialCost: 0, currentLaborCost: 0, cumulativeLaborCost: 0 },
+            { customerType: '代理设备', yearlyPlan: staticYearlyPlans.equipment['代理设备'], planExecutionRate: 0, currentMaterialCost: 0, cumulativeMaterialCost: 0, currentLaborCost: 0, cumulativeLaborCost: 0 },
+            { customerType: '代理工程', yearlyPlan: staticYearlyPlans.equipment['代理工程'], planExecutionRate: 0, currentMaterialCost: 0, cumulativeMaterialCost: 0, currentLaborCost: 0, cumulativeLaborCost: 0 },
+            { customerType: '代理设计', yearlyPlan: staticYearlyPlans.equipment['代理设计'], planExecutionRate: 0, currentMaterialCost: 0, cumulativeMaterialCost: 0, currentLaborCost: 0, cumulativeLaborCost: 0 }
+        ]
+    }
+}
+
+// 数据合并函数
+const mergeData = (initialData: any, loadedData: any) => {
+    if (!loadedData || typeof loadedData !== 'object') {
+        return initialData
+    }
+    
+    // 合并设备数据
+    if (loadedData.equipment && Array.isArray(loadedData.equipment)) {
+        initialData.equipment = initialData.equipment.map((templateItem: CostItem) => {
+            const loadedItem = loadedData.equipment.find((item: any) => item.customerType === templateItem.customerType)
+            if (loadedItem) {
+                return {
+                    ...templateItem,
+                    yearlyPlan: templateItem.yearlyPlan,
+                    planExecutionRate: 0,
+                    currentMaterialCost: Number(loadedItem.currentMaterialCost) || 0,
+                    cumulativeMaterialCost: Number(loadedItem.cumulativeMaterialCost) || 0,
+                    currentLaborCost: Number(loadedItem.currentLaborCost) || 0,
+                    cumulativeLaborCost: Number(loadedItem.cumulativeLaborCost) || 0
+                }
+            }
+            return templateItem
+        })
+    }
+    
+    return initialData
+}
+
+// 初始化数据
+const initializeData = () => {
+    const initialData = getInitialData()
+    equipmentData.value = initialData.equipment
+}
+
+const equipmentData = ref<CostItem[]>([])
+
+// 备注和建议
+const remarks = ref('')
+const suggestions = ref('')
+
+// 计算执行率
+const calculateExecutionRate = (cumulativeCost: number, yearlyPlan: number): string => {
+    if (yearlyPlan === 0) return '0.00'
+    const rate = (cumulativeCost / yearlyPlan) * 100
+    return rate.toFixed(2)
+}
+
+// 格式化数字
+const formatNumber = (value: number): string => {
+    return value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+}
 
 // 计算合计数据
 const totalData = computed(() => {
     const total = {
         yearlyPlan: 0,
-        currentPeriod: 0,
-        yearlyAccumulated: 0,
-        yearlyPlanCompletionRate: 0
+        currentMaterialCost: 0,
+        cumulativeMaterialCost: 0,
+        currentLaborCost: 0,
+        cumulativeLaborCost: 0
     }
-    
-    costStructureData.value.items.forEach(item => {
+
+    // 汇总设备板块数据
+    equipmentData.value.forEach(item => {
         total.yearlyPlan += item.yearlyPlan || 0
-        total.currentPeriod += item.currentPeriod || 0
-        total.yearlyAccumulated += item.yearlyAccumulated || 0
+        total.currentMaterialCost += item.currentMaterialCost || 0
+        total.cumulativeMaterialCost += item.cumulativeMaterialCost || 0
+        total.currentLaborCost += item.currentLaborCost || 0
+        total.cumulativeLaborCost += item.cumulativeLaborCost || 0
     })
-    
-    // 计算总年度计划完成率
-    total.yearlyPlanCompletionRate = total.yearlyPlan > 0 ? (total.yearlyAccumulated / total.yearlyPlan) * 100 : 0
-    
+
     return total
 })
+
+// 计算累计费用（当年累计）
+const calculateCumulativeCosts = async (targetPeriod: string) => {
+    try {
+        console.log(`开始计算累计费用，目标期间: ${targetPeriod}`)
+        const year = targetPeriod.substring(0, 4)
+        const targetMonth = parseInt(targetPeriod.substring(5, 7))
+
+        // 获取当年1月到目标月份的所有数据
+        const promises = []
+        for (let month = 1; month <= targetMonth; month++) {
+            const monthStr = month.toString().padStart(2, '0')
+            const periodStr = `${year}-${monthStr}`
+            console.log(`获取期间 ${periodStr} 的数据`)
+            promises.push(
+                fetch(`http://127.0.0.1:3000/tuoyuan-main-business-cost-structure-quality/${periodStr}`)
+                    .then(response => response.ok ? response.json() : { success: false })
+                    .catch(() => ({ success: false }))
+            )
+        }
+
+        const results = await Promise.all(promises)
+        console.log(`获取到 ${results.length} 个月份的数据`)
+
+        // 计算累计数据
+        const cumulativeData = {
+            equipment: {}
+        }
+
+        results.forEach((result, index) => {
+            if (result.success && result.data) {
+                console.log(`处理第 ${index + 1} 个月的数据`)
+                // 累计设备数据
+                result.data.equipment?.forEach(item => {
+                    const key = item.customerType
+                    if (!cumulativeData.equipment[key]) {
+                        cumulativeData.equipment[key] = { materialCost: 0, laborCost: 0 }
+                    }
+                    cumulativeData.equipment[key].materialCost += Number(item.currentMaterialCost) || 0
+                    cumulativeData.equipment[key].laborCost += Number(item.currentLaborCost) || 0
+                })
+            } else {
+                console.log(`第 ${index + 1} 个月的数据无效或不存在`)
+            }
+        })
+
+        console.log('累计数据计算完成:', cumulativeData)
+
+        // 更新累计数据到当前数据中
+        console.log('开始更新累计数据到界面')
+        equipmentData.value.forEach(item => {
+            const cumulative = cumulativeData.equipment[item.customerType]
+            if (cumulative) {
+                item.cumulativeMaterialCost = cumulative.materialCost
+                item.cumulativeLaborCost = cumulative.laborCost
+                console.log(`设备-${item.customerType}: 材料累计=${cumulative.materialCost}, 人工累计=${cumulative.laborCost}`)
+            } else {
+                item.cumulativeMaterialCost = 0
+                item.cumulativeLaborCost = 0
+            }
+        })
+
+        console.log('累计费用计算和更新完成')
+    } catch (error) {
+        console.error('计算累计费用失败:', error)
+    }
+}
 
 // 加载数据
 const loadData = async (targetPeriod: string) => {
     try {
-        const response = await fetch(`http://47.111.95.19:3000/tuoyuan-main-business-cost-structure-quality/${targetPeriod}`)
+        console.log(`正在加载拓源主营业务成本数据，期间: ${targetPeriod}`)
+        const response = await fetch(`http://127.0.0.1:3000/tuoyuan-main-business-cost-structure-quality/${targetPeriod}`)
         if (!response.ok) {
-            if (response.status !== 404) {
-                throw new Error('加载数据失败')
+            if (response.status === 404) {
+                console.log('未找到数据，使用初始模板')
+                initializeData()
+                return
             }
-            console.log(`${targetPeriod}期间无数据，重置为默认状态`)
-            resetToDefaultData()
-            return
+            throw new Error('加载数据失败')
         }
         const result = await response.json()
-        if (result.data && result.data.items) {
-            costStructureData.value.items = result.data.items.map((item: any) => ({
-                segmentAttribute: item.segmentAttribute,
-                customerAttribute: item.customerAttribute,
-                yearlyPlan: Number(item.yearlyPlan) || 0,
-                currentPeriod: Number(item.currentPeriod) || 0,
-                yearlyAccumulated: Number(item.yearlyAccumulated) || 0,
-                yearlyPlanCompletionRate: Number(item.yearlyPlanCompletionRate) || 0,
-                cumulativeRatio: Number(item.cumulativeRatio) || 0
-            }))
-        }
+        console.log('API返回数据:', result)
         
-        // 加载完数据后重新计算累计值
-        await calculateYearlyAccumulated(targetPeriod)
+        if (result.success && result.data) {
+            console.log('成功获取数据，开始合并...')
+            const initialData = getInitialData()
+            const mergedData = mergeData(initialData, result.data)
+            
+            equipmentData.value = mergedData.equipment
+            
+            console.log('合并后的数据:', { equipmentData: equipmentData.value })
+
+            // 计算累计费用（包含当前期间的数据）
+            await calculateCumulativeCosts(targetPeriod)
+        } else {
+            console.log('数据格式不正确，使用初始模板')
+            initializeData()
+        }
     } catch (error) {
         console.error('加载数据失败:', error)
-        resetToDefaultData()
+        initializeData()
     }
 }
 
-const resetToDefaultData = () => {
-    costStructureData.value = JSON.parse(JSON.stringify(fixedPlanData))
-}
-
-// 加载备注和建议
+// 加载已保存的备注和建议
 const loadRemarksAndSuggestions = async (targetPeriod: string) => {
     try {
-        const response = await fetch(`http://47.111.95.19:3000/forms/submission/${MODULE_IDS.TUOYUAN_MAIN_BUSINESS_COST_STRUCTURE_QUALITY}/${targetPeriod}`)
+        const response = await fetch(`http://127.0.0.1:3000/forms/submission/${MODULE_IDS.TUOYUAN_MAIN_BUSINESS_COST_STRUCTURE_QUALITY}/${targetPeriod}`)
         if (response.ok) {
             const result = await response.json()
             if (result.success && result.data) {
@@ -273,65 +335,123 @@ const loadRemarksAndSuggestions = async (targetPeriod: string) => {
     }
 }
 
+// 监听路由参数变化
 watch(() => route.query.period, async (newPeriod) => {
     if (newPeriod) {
         period.value = newPeriod.toString()
-        resetToDefaultData()
         await loadData(newPeriod.toString())
-        await calculateYearlyAccumulated(newPeriod.toString())
+        await calculateCumulativeCosts(newPeriod.toString())
         loadRemarksAndSuggestions(newPeriod.toString())
     }
 })
 
+// 监听期间变化，重新加载数据和备注
 watch(period, async (newPeriod, oldPeriod) => {
     if (newPeriod && newPeriod !== oldPeriod) {
         console.log(`期间发生变化: ${oldPeriod} -> ${newPeriod}`)
-        resetToDefaultData()
         await loadData(newPeriod)
-        await calculateYearlyAccumulated(newPeriod)
+        await calculateCumulativeCosts(newPeriod)
         loadRemarksAndSuggestions(newPeriod)
     }
 })
 
+// 监听当期费用变化，自动重新计算累计费用
+watch([equipmentData], () => {
+    clearTimeout(cumulativeCalculationTimer.value)
+    cumulativeCalculationTimer.value = setTimeout(() => {
+        calculateCumulativeCosts(period.value)
+    }, 300)
+}, { deep: true })
+
+// 防抖计时器
+const cumulativeCalculationTimer = ref<NodeJS.Timeout | null>(null)
+
 const handleSave = async () => {
     try {
-        const response = await fetch('http://47.111.95.19:3000/tuoyuan-main-business-cost-structure-quality', {
+        console.log('=== 开始保存拓源主营业务成本数据 ===')
+        console.log('期间:', period.value)
+        console.log('模块ID:', MODULE_IDS.TUOYUAN_MAIN_BUSINESS_COST_STRUCTURE_QUALITY)
+        
+        // 准备表单数据
+        const formData = {
+            equipment: equipmentData.value.map(item => ({
+                customerType: item.customerType,
+                yearlyPlan: item.yearlyPlan,
+                planExecutionRate: item.planExecutionRate,
+                currentMaterialCost: item.currentMaterialCost,
+                cumulativeMaterialCost: item.cumulativeMaterialCost,
+                currentLaborCost: item.currentLaborCost,
+                cumulativeLaborCost: item.cumulativeLaborCost
+            }))
+        }
+        
+        console.log('表单数据:', formData)
+
+        // 第一步：保存到专用表
+        console.log('步骤1：保存到专用表...')
+        const response = await fetch('http://127.0.0.1:3000/tuoyuan-main-business-cost-structure-quality', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
                 period: period.value,
-                data: {
-                    items: costStructureData.value.items
-                }
+                data: formData
             })
         })
 
         if (!response.ok) {
+            const errorText = await response.text()
+            console.error('专用表保存失败，响应:', errorText)
             throw new Error('保存失败')
         }
+        
+        const result = await response.json()
+        console.log('专用表保存成功:', result)
 
-        await recordFormSubmission(MODULE_IDS.TUOYUAN_MAIN_BUSINESS_COST_STRUCTURE_QUALITY, period.value, { items: costStructureData.value.items }, remarks.value, suggestions.value)
-        alert('保存成功')
+        // 第二步：记录提交状态
+        console.log('步骤2：记录提交状态...')
+        const recordSuccess = await recordFormSubmission(
+            MODULE_IDS.TUOYUAN_MAIN_BUSINESS_COST_STRUCTURE_QUALITY,
+            period.value,
+            formData,
+            remarks.value,
+            suggestions.value
+        )
+        
+        console.log('提交状态记录结果:', recordSuccess)
+        
+        if (recordSuccess) {
+            console.log('=== 保存完成，所有步骤成功 ===')
+            alert('保存成功')
+        } else {
+            console.warn('=== 专用表保存成功，但提交状态记录失败 ===')
+            alert('保存成功，但提交状态记录失败')
+        }
     } catch (error) {
-        console.error('保存失败:', error)
-        alert('保存失败')
+        console.error('=== 保存过程中发生错误 ===', error)
+        alert('保存失败: ' + (error instanceof Error ? error.message : '未知错误'))
     }
 }
 
 const handleReset = () => {
-    resetToDefaultData()
+    initializeData()
     remarks.value = ''
     suggestions.value = ''
+    console.log('已重置为初始数据')
 }
 
 onMounted(async () => {
-    resetToDefaultData()
-    const targetPeriod = route.query.period?.toString() || period.value
-    await loadData(targetPeriod)
-    await calculateYearlyAccumulated(targetPeriod)
-    loadRemarksAndSuggestions(targetPeriod)
+    console.log('拓源主营业务成本组件挂载，当前期间:', period.value)
+    if (route.query.period) {
+        await loadData(route.query.period.toString())
+        await calculateCumulativeCosts(route.query.period.toString())
+        loadRemarksAndSuggestions(route.query.period.toString())
+    } else {
+        await loadData(period.value)
+        await calculateCumulativeCosts(period.value)
+        loadRemarksAndSuggestions(period.value)
+    }
 })
 </script>
 

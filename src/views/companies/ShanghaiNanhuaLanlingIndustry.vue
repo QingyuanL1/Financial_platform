@@ -143,7 +143,7 @@
       
       <!-- 数据分析入口 -->
       <div class="bg-white p-6 rounded-lg shadow-sm mb-8">
-        <h3 class="text-lg font-semibold text-gray-900 mb-4">南华公司数据分析中心</h3>
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">南华兰陵实业数据分析中心</h3>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
           <!-- ROE分析卡片 -->
           <div class="bg-white p-6 rounded-lg border border-gray-200 hover:border-blue-400 hover:shadow-sm transition-all relative">
@@ -522,7 +522,7 @@ const fetchDashboardData = async () => {
     // 使用重试机制获取数据
     const result = await retryWithDelay(async () => {
       const response = await safeFetch(
-        `http://47.111.95.19:3000/dashboard/company/${userId}/${encodeURIComponent(companyName)}`,
+        `http://127.0.0.1:3000/dashboard/company/${userId}/${encodeURIComponent(companyName)}`,
         { method: 'GET' },
         '获取仪表板数据'
       )
@@ -563,7 +563,7 @@ const fetchAnnouncements = async () => {
   try {
     loadingAnnouncements.value = true
     const userId = userStore.userInfo?.id || 1
-    const response = await fetch(`http://47.111.95.19:3000/notifications/unread/${userId}?limit=5`, {
+    const response = await fetch(`http://127.0.0.1:3000/notifications/unread/${userId}?limit=5`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -593,7 +593,7 @@ const fetchAnnouncements = async () => {
     console.error('获取公告失败:', error)
     // 如果新API失败，回退到旧的API
     try {
-      const response = await fetch('http://47.111.95.19:3000/dashboard/announcements', {
+      const response = await fetch('http://127.0.0.1:3000/dashboard/announcements', {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -646,7 +646,7 @@ const markAsReadAndClose = async (notificationId: number) => {
 const markAsRead = async (notificationId: number) => {
   try {
     const userId = userStore.userInfo?.id || 1
-    const response = await fetch(`http://47.111.95.19:3000/notifications/${notificationId}/read`, {
+    const response = await fetch(`http://127.0.0.1:3000/notifications/${notificationId}/read`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -700,7 +700,7 @@ const getTypeText = (type: string) => {
 const fetchAnalysisCompletionRates = async () => {
   try {
     const currentYear = new Date().getFullYear()
-    const response = await fetch(`http://47.111.95.19:3000/analytics/completion-rates/${currentYear}`)
+    const response = await fetch(`http://127.0.0.1:3000/analytics/completion-rates/${currentYear}`)
     
     if (!response.ok) {
       throw new Error('获取分析模块完成率失败')
@@ -749,7 +749,7 @@ const formatNumber = (num: number) => {
 const fetchROEData = async () => {
   try {
     const currentYear = new Date().getFullYear()
-    const response = await fetch(`http://47.111.95.19:3000/analytics/roe/${currentYear}`, {
+    const response = await fetch(`http://127.0.0.1:3000/analytics/roe/${currentYear}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -800,7 +800,7 @@ const fetchROEData = async () => {
 const fetchNetProfitMarginData = async () => {
   try {
     const currentYear = new Date().getFullYear()
-    const response = await fetch(`http://47.111.95.19:3000/analytics/net-profit-margin/${currentYear}`)
+    const response = await fetch(`http://127.0.0.1:3000/analytics/net-profit-margin/${currentYear}`)
     
     if (!response.ok) {
       throw new Error('获取净利率数据失败')
@@ -823,7 +823,7 @@ const fetchNetProfitMarginData = async () => {
 const fetchAssetLiabilityRatioData = async () => {
   try {
     const currentYear = new Date().getFullYear()
-    const response = await fetch(`http://47.111.95.19:3000/analytics/asset-liability-ratio/${currentYear}`)
+    const response = await fetch(`http://127.0.0.1:3000/analytics/asset-liability-ratio/${currentYear}`)
     
     if (!response.ok) {
       throw new Error('获取资产负债率数据失败')
@@ -1067,7 +1067,7 @@ const updateCharts = () => {
 
 const fetchChartData = async () => {
   try {
-    const response = await fetch(`http://47.111.95.19:3000/income-statement/annual/${selectedYear.value}`)
+    const response = await fetch(`http://127.0.0.1:3000/income-statement/annual/${selectedYear.value}`)
     if (!response.ok) {
       console.warn('获取图表数据失败')
       return

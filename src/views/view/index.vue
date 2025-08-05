@@ -141,7 +141,7 @@
                 </div>
                 <div class="ml-4">
                   <a 
-                    :href="`http://47.111.95.19:3000/files/download/${file.id}`" 
+                    :href="`http://127.0.0.1:3000/files/download/${file.id}`" 
                     target="_blank"
                     class="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
                   >
@@ -187,7 +187,7 @@
                         'bg-green-500': category.name === '营销', 
                         'bg-yellow-500': category.name === '生产',
                         'bg-purple-500': category.name === '企管',
-                        'bg-red-500': category.name === '南华公司',
+                        'bg-red-500': category.name === '南华兰陵实业',
                         'bg-orange-500': category.name === '拓源公司'
                       }"></span>
                 {{ category.name }} ({{ category.modules.length }} 个模块)
@@ -264,10 +264,12 @@ const currentCompany = computed(() => {
 
 // 计算可用分类
 const availableCategories = computed(() => {
-  const categories = [...new Set(modules.value.map(m => {
-    // 将"南华"合并到"南华公司"
-    return m.module_category === '南华' ? '南华公司' : m.module_category
-  }))]
+  console.log('🔍 [DEBUG] 计算可用分类，总模块数:', modules.value.length)
+  console.log('🔍 [DEBUG] 所有模块分类:', modules.value.map(m => m.module_category))
+  
+  const categories = [...new Set(modules.value.map(m => m.module_category))]
+  
+  console.log('🔍 [DEBUG] 最终可用分类:', categories)
   return categories.sort()
 })
 
@@ -275,9 +277,9 @@ const availableCategories = computed(() => {
 const filteredModules = computed(() => {
   if (!selectedCategory.value) return []
   
-  // 如果选择的是"南华公司"，则包含"南华"和"南华公司"两个分类
-  if (selectedCategory.value === '南华公司') {
-    return modules.value.filter(m => m.module_category === '南华公司' || m.module_category === '南华')
+  // 如果选择的是"南华兰陵实业"，则包含"南华"和"南华兰陵实业"两个分类
+  if (selectedCategory.value === '南华兰陵实业') {
+    return modules.value.filter(m => m.module_category === '南华兰陵实业' || m.module_category === '南华')
   }
   
   return modules.value.filter(m => m.module_category === selectedCategory.value)
@@ -288,11 +290,7 @@ const categorizedModules = computed(() => {
   const categoryMap = new Map<string, Module[]>()
   
   modules.value.forEach(module => {
-    // 将"南华"和"南华公司"合并为"南华公司"
-    let categoryName = module.module_category
-    if (categoryName === '南华') {
-      categoryName = '南华公司'
-    }
+    const categoryName = module.module_category
     
     if (!categoryMap.has(categoryName)) {
       categoryMap.set(categoryName, [])
@@ -326,32 +324,51 @@ const fetchUserModules = async () => {
     
     // 从localStorage获取用户选择的公司
     const selectedCompany = localStorage.getItem('selectedCompany') || ''
+    console.log('🔍 [DEBUG] 用户ID:', userId, '选择的公司:', selectedCompany)
     
-    // 公司名称映射到数据库中的分类名
-    const companyMapping: { [key: string]: string } = {
-      '常州拓源电气集团有限公司': '拓源公司',
-      '上海南华兰陵电气有限公司': '南华公司',
-      '上海南华兰陵实业有限公司': '南华公司'
-    }
+    // 统一使用通用API获取所有模块
+    const apiUrl = `http://127.0.0.1:3000/permissions/user/${userId}`
+    console.log('🔍 [DEBUG] 使用通用API:', apiUrl)
+    const response = await fetch(apiUrl)
     
-    let response
-    
-    // 如果用户选择了特定公司，使用公司特定的API
-    if (selectedCompany && companyMapping[selectedCompany]) {
-      const companyCategory = companyMapping[selectedCompany]
-      response = await fetch(`http://47.111.95.19:3000/permissions/user/${userId}/company/${encodeURIComponent(companyCategory)}`)
-    } else {
-      // 如果没有选择公司，使用通用API
-      response = await fetch(`http://47.111.95.19:3000/permissions/user/${userId}`)
-    }
+    console.log('🔍 [DEBUG] API响应状态:', response.status)
     
     if (!response.ok) {
       throw new Error('获取用户权限失败')
     }
     
     const result = await response.json()
+    console.log('🔍 [DEBUG] API返回结果:', result)
+    
     if (result.success) {
-      modules.value = result.data.accessible_modules || []
+      let allModules = result.data.accessible_modules || []
+      
+      // 根据选择的公司过滤模块
+      if (selectedCompany === '上海南华兰陵电气有限公司') {
+        // 南华电气公司：只显示企管、生产、营销、财务
+        modules.value = allModules.filter(module => 
+          ['企管', '生产', '营销', '财务'].includes(module.module_category)
+        )
+        console.log('🔍 [DEBUG] 南华电气公司过滤后模块数量:', modules.value.length)
+      } else if (selectedCompany === '上海南华兰陵实业有限公司') {
+        // 南华实业公司：只显示南华兰陵实业
+        modules.value = allModules.filter(module => 
+          module.module_category === '南华兰陵实业'
+        )
+        console.log('🔍 [DEBUG] 南华实业公司过滤后模块数量:', modules.value.length)
+      } else if (selectedCompany === '常州拓源电气集团有限公司') {
+        // 拓源公司：只显示拓源公司
+        modules.value = allModules.filter(module => 
+          module.module_category === '拓源公司'
+        )
+        console.log('🔍 [DEBUG] 拓源公司过滤后模块数量:', modules.value.length)
+      } else {
+        // 其他情况显示所有模块
+        modules.value = allModules
+        console.log('🔍 [DEBUG] 显示所有模块数量:', modules.value.length)
+      }
+      
+      console.log('🔍 [DEBUG] 最终模块分类:', [...new Set(modules.value.map(m => m.module_category))])
     }
   } catch (error) {
     console.error('获取用户模块失败:', error)
@@ -385,7 +402,7 @@ const loadSubmissionDetails = async () => {
   
   try {
     // 获取提交详情
-    const submissionResponse = await fetch(`http://47.111.95.19:3000/forms/submission/${selectedModule.value.id}/${selectedPeriod.value}`)
+    const submissionResponse = await fetch(`http://127.0.0.1:3000/forms/submission/${selectedModule.value.id}/${selectedPeriod.value}`)
     
     if (submissionResponse.ok) {
       const submissionResult = await submissionResponse.json()
@@ -401,7 +418,7 @@ const loadSubmissionDetails = async () => {
     }
     
     // 获取附件列表
-    const attachmentResponse = await fetch(`http://47.111.95.19:3000/files/attachments/${selectedModule.value.id}/${selectedPeriod.value}`)
+    const attachmentResponse = await fetch(`http://127.0.0.1:3000/files/attachments/${selectedModule.value.id}/${selectedPeriod.value}`)
     
     if (attachmentResponse.ok) {
       const attachmentResult = await attachmentResponse.json()

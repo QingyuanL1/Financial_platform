@@ -175,7 +175,7 @@ const totalData = computed(() => {
 // 加载数据
 const loadData = async (targetPeriod: string) => {
     try {
-        const response = await fetch(`http://47.111.95.19:3000/nanhua-inventory-structure/${targetPeriod}`)
+        const response = await fetch(`http://127.0.0.1:3000/nanhua-inventory-structure/${targetPeriod}`)
         if (!response.ok) {
             if (response.status !== 404) {
                 throw new Error('加载数据失败')
@@ -201,7 +201,7 @@ const loadData = async (targetPeriod: string) => {
 // 加载已保存的备注和建议
 const loadRemarksAndSuggestions = async (targetPeriod: string) => {
     try {
-        const response = await fetch(`http://47.111.95.19:3000/forms/submission/${MODULE_IDS.NANHUA_INVENTORY_STRUCTURE}/${targetPeriod}`)
+        const response = await fetch(`http://127.0.0.1:3000/forms/submission/${MODULE_IDS.NANHUA_INVENTORY_STRUCTURE}/${targetPeriod}`)
         if (response.ok) {
             const result = await response.json()
             if (result.success && result.data) {
@@ -239,7 +239,7 @@ const handleSave = async () => {
             item.fluctuationRate = calculateFluctuationRate(item.initialAmount, item.accumulated)
         })
         
-        const response = await fetch('http://47.111.95.19:3000/nanhua-inventory-structure', {
+        const response = await fetch('http://127.0.0.1:3000/nanhua-inventory-structure', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'

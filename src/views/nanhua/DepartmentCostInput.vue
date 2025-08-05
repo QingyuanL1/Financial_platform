@@ -121,8 +121,8 @@ interface DepartmentData {
 const fixedData: DepartmentData = {
     departments: [
         { departmentName: '总经理室', yearlyBudget: 361.36, currentAmount: 0, accumulatedAmount: 0, executionProgress: 0, actualRatio: 0 },
-        { departmentName: '综合部', yearlyBudget: 461.45, currentAmount: 0, accumulatedAmount: 0, executionProgress: 0, actualRatio: 0 },
-        { departmentName: '财务部', yearlyBudget: 93.07, currentAmount: 0, accumulatedAmount: 0, executionProgress: 0, actualRatio: 0 },
+        { departmentName: '综管部', yearlyBudget: 461.45, currentAmount: 0, accumulatedAmount: 0, executionProgress: 0, actualRatio: 0 },
+        { departmentName: '经管部', yearlyBudget: 93.07, currentAmount: 0, accumulatedAmount: 0, executionProgress: 0, actualRatio: 0 },
         { departmentName: '安质部', yearlyBudget: 116.00, currentAmount: 0, accumulatedAmount: 0, executionProgress: 0, actualRatio: 0 },
         { departmentName: '工程部', yearlyBudget: 821.07, currentAmount: 0, accumulatedAmount: 0, executionProgress: 0, actualRatio: 0 },
         { departmentName: '运检部', yearlyBudget: 569.90, currentAmount: 0, accumulatedAmount: 0, executionProgress: 0, actualRatio: 0 },
@@ -132,6 +132,12 @@ const fixedData: DepartmentData = {
 
 
 const departmentData = ref<DepartmentData>(JSON.parse(JSON.stringify(fixedData)))
+
+// 部门名称映射表，用于处理历史数据中的名称变更
+const departmentNameMapping: Record<string, string> = {
+    '综合部': '综管部',
+    '财务部': '经管部'
+}
 
 // 备注和建议
 const remarks = ref('')
@@ -173,34 +179,60 @@ const totalData = computed(() => {
 // 加载数据
 const loadData = async (targetPeriod: string) => {
     try {
-        const response = await fetch(`http://47.111.95.19:3000/nanhua-department-cost-input/${targetPeriod}`)
+        // 首先重置为固定结构
+        departmentData.value = JSON.parse(JSON.stringify(fixedData))
+        
+        const response = await fetch(`http://127.0.0.1:3000/nanhua-department-cost-input/${targetPeriod}`)
         if (!response.ok) {
             if (response.status !== 404) {
                 throw new Error('加载数据失败')
             }
             return
         }
+        
         const result = await response.json()
         if (result.data && result.data.departments) {
-            // 直接使用后端返回的数据
-            departmentData.value.departments = result.data.departments.map((item: any) => ({
-                departmentName: item.departmentName,
-                yearlyBudget: Number(item.yearlyBudget) || 0,
-                currentAmount: Number(item.currentAmount) || 0,
-                accumulatedAmount: Number(item.accumulatedAmount) || 0,
-                executionProgress: Number(item.executionProgress) || 0,
-                actualRatio: Number(item.actualRatio) || 0
-            }))
+            // 创建后端数据的映射表
+            const backendDataMap = new Map<string, any>()
+            result.data.departments.forEach((item: any) => {
+                // 处理名称映射，将旧名称转换为新名称
+                let departmentName = item.departmentName
+                if (departmentNameMapping[departmentName]) {
+                    departmentName = departmentNameMapping[departmentName]
+                }
+                backendDataMap.set(departmentName, item)
+            })
+            
+            // 合并固定结构和后端数据
+            departmentData.value.departments = departmentData.value.departments.map(fixedItem => {
+                const backendItem = backendDataMap.get(fixedItem.departmentName)
+                if (backendItem) {
+                    return {
+                        departmentName: fixedItem.departmentName,
+                        yearlyBudget: fixedItem.yearlyBudget, // 保持固定的预算值
+                        currentAmount: Number(backendItem.currentAmount) || 0,
+                        accumulatedAmount: 0, // 稍后重新计算
+                        executionProgress: 0, // 稍后重新计算
+                        actualRatio: Number(backendItem.actualRatio) || 0
+                    }
+                }
+                return fixedItem
+            })
         }
+        
+        // 重新计算累计金额和执行进度
+        await calculateAccumulatedAmounts(targetPeriod)
     } catch (error) {
         console.error('加载数据失败:', error)
+        // 出错时保持固定结构
+        departmentData.value = JSON.parse(JSON.stringify(fixedData))
     }
 }
 
 // 加载已保存的备注和建议
 const loadRemarksAndSuggestions = async (targetPeriod: string) => {
     try {
-        const response = await fetch(`http://47.111.95.19:3000/forms/submission/${MODULE_IDS.NANHUA_DEPARTMENT_COST_INPUT}/${targetPeriod}`)
+        const response = await fetch(`http://127.0.0.1:3000/forms/submission/${MODULE_IDS.NANHUA_DEPARTMENT_COST_INPUT}/${targetPeriod}`)
         if (response.ok) {
             const result = await response.json()
             if (result.success && result.data) {
@@ -218,7 +250,7 @@ watch(() => route.query.period, async (newPeriod) => {
     if (newPeriod) {
         period.value = newPeriod.toString()
         await loadData(newPeriod.toString())
-        loadRemarksAndSuggestions(newPeriod.toString())
+        await loadRemarksAndSuggestions(newPeriod.toString())
     }
 })
 
@@ -227,13 +259,75 @@ watch(period, async (newPeriod, oldPeriod) => {
     if (newPeriod && newPeriod !== oldPeriod) {
         console.log(`期间发生变化: ${oldPeriod} -> ${newPeriod}`)
         await loadData(newPeriod)
-        loadRemarksAndSuggestions(newPeriod)
+        await loadRemarksAndSuggestions(newPeriod)
     }
 })
 
+// 获取历史累计数据并计算累计金额
+const calculateAccumulatedAmounts = async (targetPeriod: string) => {
+    try {
+        const year = targetPeriod.split('-')[0]
+        const month = parseInt(targetPeriod.split('-')[1])
+        
+        // 获取从年初到当期的所有历史数据
+        const promises = []
+        for (let m = 1; m <= month; m++) {
+            const periodStr = `${year}-${m.toString().padStart(2, '0')}`
+            promises.push(
+                fetch(`http://127.0.0.1:3000/nanhua-department-cost-input/${periodStr}`)
+                    .then(res => res.ok ? res.json() : { data: null })
+                    .catch(() => ({ data: null }))
+            )
+        }
+        
+        const results = await Promise.all(promises)
+        
+        // 为每个部门计算累计金额
+        departmentData.value.departments.forEach(item => {
+            let accumulatedAmount = 0
+            results.forEach(result => {
+                if (result.data && result.data.departments) {
+                    const historyItem = result.data.departments.find((dept: any) => {
+                        // 考虑名称映射
+                        let deptName = dept.departmentName
+                        if (departmentNameMapping[deptName]) {
+                            deptName = departmentNameMapping[deptName]
+                        }
+                        return deptName === item.departmentName
+                    })
+                    if (historyItem) {
+                        accumulatedAmount += Number(historyItem.currentAmount) || 0
+                    }
+                }
+            })
+            item.accumulatedAmount = accumulatedAmount
+        })
+    } catch (error) {
+        console.error('计算累计金额失败:', error)
+    }
+}
+
+// 监听当期金额变化，自动计算累计金额和执行进度
+watch(() => departmentData.value.departments.map(d => d.currentAmount), async () => {
+    // 重新计算累计金额
+    await calculateAccumulatedAmounts(period.value)
+    
+    // 计算执行进度
+    departmentData.value.departments.forEach(item => {
+        if (item.yearlyBudget > 0) {
+            item.executionProgress = (item.accumulatedAmount / item.yearlyBudget) * 100
+        } else {
+            item.executionProgress = 0
+        }
+    })
+}, { deep: true })
+
 const handleSave = async () => {
     try {
-        const response = await fetch('http://47.111.95.19:3000/nanhua-department-cost-input', {
+        // 保存前重新计算累计金额和执行进度
+        await calculateAccumulatedAmounts(period.value)
+        
+        const response = await fetch('http://127.0.0.1:3000/nanhua-department-cost-input', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -269,10 +363,10 @@ const handleReset = () => {
 onMounted(async () => {
     if (route.query.period) {
         await loadData(route.query.period.toString())
-        loadRemarksAndSuggestions(route.query.period.toString())
+        await loadRemarksAndSuggestions(route.query.period.toString())
     } else {
         await loadData(period.value)
-        loadRemarksAndSuggestions(period.value)
+        await loadRemarksAndSuggestions(period.value)
     }
 })
 </script>

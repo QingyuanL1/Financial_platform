@@ -1,11 +1,7 @@
 <template>
     <div class="max-w-[1500px] mx-auto bg-white rounded-lg shadow-lg p-6">
-        <div class="flex justify-between items-center mb-6">
-            <h1 class="text-2xl font-bold">成本中心结构与质量（按年度计划口径分解）</h1>
-            <div class="flex items-center space-x-4">
-                <span class="text-sm text-gray-600">（单位：万元）</span>
-                <input v-model="period" type="month" class="px-3 py-2 border rounded" />
-            </div>
+        <div class="mb-6">
+            <h1 class="text-2xl font-bold">成本计提情况:（单位：万元）</h1>
         </div>
 
         <div class="overflow-x-auto my-6">
@@ -15,8 +11,8 @@
                         <th class="border border-gray-300 px-4 py-2">板块</th>
                         <th class="border border-gray-300 px-4 py-2">客户属性</th>
                         <th class="border border-gray-300 px-4 py-2">年初余额</th>
-                        <th class="border border-gray-300 px-4 py-2">当期</th>
-                        <th class="border border-gray-300 px-4 py-2">累计</th>
+                        <th class="border border-gray-300 px-4 py-2">本月新增</th>
+                        <th class="border border-gray-300 px-4 py-2">本年累计</th>
                         <th class="border border-gray-300 px-4 py-2">计提率</th>
                     </tr>
                 </thead>
@@ -40,7 +36,7 @@
                                 {{ formatNumber(item.yearlyAccumulated) }}
                             </td>
                             <td class="border border-gray-300 px-4 py-2 text-right">
-                                <span class="text-sm font-medium">{{ formatNumber(item.provisionRate) }}%</span>
+                                <span class="text-sm font-medium">{{ formatProvisionRate(item.provisionRate) }}</span>
                             </td>
                         </tr>
                     </template>
@@ -58,7 +54,7 @@
                             {{ formatNumber(totalData.yearlyAccumulated) }}
                         </td>
                         <td class="border border-gray-300 px-4 py-2 text-right">
-                            <span class="text-sm font-bold">{{ formatNumber(totalData.provisionRate) }}%</span>
+                            <span class="text-sm font-bold">{{ formatProvisionRate(totalData.provisionRate) }}</span>
                         </td>
                     </tr>
                 </tbody>
@@ -105,7 +101,7 @@ interface CostProvisionData {
     customers: CostProvisionItem[];
 }
 
-// 固定的年初余额数据
+// 固定的年初余额数据 - 更新为与图片一致
 const fixedBalanceData: CostProvisionData = {
     customers: [
         { customerName: '一包项目', yearBeginBalance: 1164.76, monthlyIncrease: 0, yearlyAccumulated: 0, provisionRate: 0 },
@@ -133,6 +129,14 @@ const formatNumber = (value: number): string => {
     return value.toFixed(2)
 }
 
+// 格式化计提率显示 - 处理特殊情况显示斜杠
+const formatProvisionRate = (value: number): string => {
+    if (value === 0 && Math.abs(value) < 0.01) return '0.00%'
+    // 如果计算不出来的情况下使用斜杠
+    if (isNaN(value) || value === Infinity || value === -Infinity) return '/'
+    return value.toFixed(2) + '%'
+}
+
 // 计算累计数据（从年初到当前月份）
 const calculateAccumulated = async (targetPeriod: string) => {
     try {
@@ -147,7 +151,7 @@ const calculateAccumulated = async (targetPeriod: string) => {
             for (let m = 1; m <= currentMonth; m++) {
                 const monthPeriod = `${year}-${m.toString().padStart(2, '0')}`
                 try {
-                    const response = await fetch(`http://47.111.95.19:3000/nanhua-cost-provision/${monthPeriod}`)
+                    const response = await fetch(`http://127.0.0.1:3000/nanhua-cost-provision/${monthPeriod}`)
                     if (response.ok) {
                         const result = await response.json()
                         const customerData = result.data.customers.find((c: any) => c.customerName === customer.customerName)
@@ -161,6 +165,13 @@ const calculateAccumulated = async (targetPeriod: string) => {
             }
             
             customer.yearlyAccumulated = accumulated
+            
+            // 计算计提率 = 年累计 / 年初余额 * 100%
+            if (customer.yearBeginBalance > 0) {
+                customer.provisionRate = (customer.yearlyAccumulated / customer.yearBeginBalance) * 100
+            } else {
+                customer.provisionRate = 0
+            }
         }
     } catch (error) {
         console.error('计算累计数据失败:', error)
@@ -180,8 +191,12 @@ const totalData = computed(() => {
         total.yearBeginBalance += item.yearBeginBalance || 0
         total.monthlyIncrease += item.monthlyIncrease || 0
         total.yearlyAccumulated += item.yearlyAccumulated || 0
-        total.provisionRate += item.provisionRate || 0
     })
+    
+    // 计算总计提率
+    if (total.yearBeginBalance > 0) {
+        total.provisionRate = (total.yearlyAccumulated / total.yearBeginBalance) * 100
+    }
     
     return total
 })
@@ -189,7 +204,7 @@ const totalData = computed(() => {
 // 加载数据
 const loadData = async (targetPeriod: string) => {
     try {
-        const response = await fetch(`http://47.111.95.19:3000/nanhua-cost-provision/${targetPeriod}`)
+        const response = await fetch(`http://127.0.0.1:3000/nanhua-cost-provision/${targetPeriod}`)
         if (!response.ok) {
             if (response.status !== 404) {
                 throw new Error('加载数据失败')
@@ -215,7 +230,7 @@ const loadData = async (targetPeriod: string) => {
 // 加载已保存的备注和建议
 const loadRemarksAndSuggestions = async (targetPeriod: string) => {
     try {
-        const response = await fetch(`http://47.111.95.19:3000/forms/submission/${MODULE_IDS.NANHUA_COST_PROVISION}/${targetPeriod}`)
+        const response = await fetch(`http://127.0.0.1:3000/forms/submission/${MODULE_IDS.NANHUA_COST_PROVISION}/${targetPeriod}`)
         if (response.ok) {
             const result = await response.json()
             if (result.success && result.data) {
@@ -250,7 +265,7 @@ watch(period, async (newPeriod, oldPeriod) => {
 
 const handleSave = async () => {
     try {
-        const response = await fetch('http://47.111.95.19:3000/nanhua-cost-provision', {
+        const response = await fetch('http://127.0.0.1:3000/nanhua-cost-provision', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'

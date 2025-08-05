@@ -15,8 +15,7 @@
                         <th class="border border-gray-300 px-4 py-2">板块</th>
                         <th class="border border-gray-300 px-4 py-2">客户属性</th>
                         <th class="border border-gray-300 px-4 py-2">年度计划</th>
-                        <th class="border border-gray-300 px-4 py-2">当期</th>
-                        <th class="border border-gray-300 px-4 py-2">累计</th>
+                        <th class="border border-gray-300 px-4 py-2">当期累计</th>
                         <th class="border border-gray-300 px-4 py-2">执行进度</th>
                     </tr>
                 </thead>
@@ -37,9 +36,6 @@
                                 <input v-model="item.current" type="number" class="w-full px-2 py-1 border rounded text-right" step="0.01" />
                             </td>
                             <td class="border border-gray-300 px-4 py-2 text-right">
-                                {{ formatNumber(item.accumulated) }}
-                            </td>
-                            <td class="border border-gray-300 px-4 py-2 text-right">
                                 <span class="text-sm font-medium">{{ calculateProgress(item.yearlyPlan, item.accumulated) }}%</span>
                             </td>
                         </tr>
@@ -54,9 +50,7 @@
                         <td class="border border-gray-300 px-4 py-2 text-right">
                             {{ formatNumber(totalData.current) }}
                         </td>
-                        <td class="border border-gray-300 px-4 py-2 text-right">
-                            {{ formatNumber(totalData.accumulated) }}
-                        </td>
+                     
                         <td class="border border-gray-300 px-4 py-2 text-right">
                             <span class="text-sm font-bold">{{ totalData.progress }}%</span>
                         </td>
@@ -161,7 +155,7 @@ const totalData = computed(() => {
 // 加载数据
 const loadData = async (targetPeriod: string) => {
     try {
-        const response = await fetch(`http://47.111.95.19:3000/nanhua-project-tracking/${targetPeriod}`)
+        const response = await fetch(`http://127.0.0.1:3000/nanhua-project-tracking/${targetPeriod}`)
         if (!response.ok) {
             if (response.status !== 404) {
                 throw new Error('加载数据失败')
@@ -186,7 +180,7 @@ const loadData = async (targetPeriod: string) => {
 // 加载已保存的备注和建议
 const loadRemarksAndSuggestions = async (targetPeriod: string) => {
     try {
-        const response = await fetch(`http://47.111.95.19:3000/forms/submission/${MODULE_IDS.NANHUA_PROJECT_TRACKING}/${targetPeriod}`)
+        const response = await fetch(`http://127.0.0.1:3000/forms/submission/${MODULE_IDS.NANHUA_PROJECT_TRACKING}/${targetPeriod}`)
         if (response.ok) {
             const result = await response.json()
             if (result.success && result.data) {
@@ -219,7 +213,7 @@ watch(period, (newPeriod, oldPeriod) => {
 
 const handleSave = async () => {
     try {
-        const response = await fetch('http://47.111.95.19:3000/nanhua-project-tracking', {
+        const response = await fetch('http://127.0.0.1:3000/nanhua-project-tracking', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'

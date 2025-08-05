@@ -139,7 +139,7 @@ const fixedData: CostCenterData = {
         { customerName: '域外合作项目', yearlyPlannedIncome: 17.07, currentIncome: 0, accumulatedIncome: 0, contributionRate: 0 },
         { customerName: '新能源项目', yearlyPlannedIncome: 157.09, currentIncome: 0, accumulatedIncome: 0, contributionRate: 0 },
         { customerName: '苏州项目', yearlyPlannedIncome: 12.88, currentIncome: 0, accumulatedIncome: 0, contributionRate: 0 },
-        { customerName: '投标项目', yearlyPlannedIncome: 41.77, currentIncome: 0, accumulatedIncome: 0, contributionRate: 0 },
+        { customerName: '抢修项目', yearlyPlannedIncome: 41.77, currentIncome: 0, accumulatedIncome: 0, contributionRate: 0 },
         { customerName: '运检项目', yearlyPlannedIncome: 68.06, currentIncome: 0, accumulatedIncome: 0, contributionRate: 0 },
         { customerName: '自建项目', yearlyPlannedIncome: 0.00, currentIncome: 0, accumulatedIncome: 0, contributionRate: 0 }
     ],
@@ -175,7 +175,7 @@ const calculateAccumulatedIncome = async (targetPeriod: string) => {
             for (let m = 1; m <= currentMonth; m++) {
                 const monthPeriod = `${year}-${m.toString().padStart(2, '0')}`
                 try {
-                    const response = await fetch(`http://47.111.95.19:3000/nanhua-cost-center-structure/${monthPeriod}`)
+                    const response = await fetch(`http://127.0.0.1:3000/nanhua-cost-center-structure/${monthPeriod}`)
                     if (response.ok) {
                         const result = await response.json()
                         const customerData = result.data.engineering.find((c: any) => c.customerName === customer.customerName)
@@ -201,7 +201,7 @@ const calculateAccumulatedIncome = async (targetPeriod: string) => {
             for (let m = 1; m <= currentMonth; m++) {
                 const monthPeriod = `${year}-${m.toString().padStart(2, '0')}`
                 try {
-                    const response = await fetch(`http://47.111.95.19:3000/nanhua-cost-center-structure/${monthPeriod}`)
+                    const response = await fetch(`http://127.0.0.1:3000/nanhua-cost-center-structure/${monthPeriod}`)
                     if (response.ok) {
                         const result = await response.json()
                         const customerData = result.data.nonMainBusiness.find((c: any) => c.customerName === customer.customerName)
@@ -255,7 +255,7 @@ const totalData = computed(() => {
 // 加载数据
 const loadData = async (targetPeriod: string) => {
     try {
-        const response = await fetch(`http://47.111.95.19:3000/nanhua-cost-center-structure/${targetPeriod}`)
+        const response = await fetch(`http://127.0.0.1:3000/nanhua-cost-center-structure/${targetPeriod}`)
         if (!response.ok) {
             if (response.status !== 404) {
                 throw new Error('加载数据失败')
@@ -294,7 +294,7 @@ const loadData = async (targetPeriod: string) => {
 // 加载已保存的备注和建议
 const loadRemarksAndSuggestions = async (targetPeriod: string) => {
     try {
-        const response = await fetch(`http://47.111.95.19:3000/forms/submission/${MODULE_IDS.NANHUA_COST_CENTER_STRUCTURE}/${targetPeriod}`)
+        const response = await fetch(`http://127.0.0.1:3000/forms/submission/${MODULE_IDS.NANHUA_COST_CENTER_STRUCTURE}/${targetPeriod}`)
         if (response.ok) {
             const result = await response.json()
             if (result.success && result.data) {
@@ -329,7 +329,7 @@ watch(period, async (newPeriod, oldPeriod) => {
 
 const handleSave = async () => {
     try {
-        const response = await fetch('http://47.111.95.19:3000/nanhua-cost-center-structure', {
+        const response = await fetch('http://127.0.0.1:3000/nanhua-cost-center-structure', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'

@@ -253,7 +253,11 @@ const writableModules = computed(() => {
 
 // 计算可用分类
 const availableCategories = computed(() => {
+  console.log('🔍 [SUBMIT DEBUG] 计算可用分类，可写模块数:', writableModules.value.length)
+  console.log('🔍 [SUBMIT DEBUG] 可写模块分类:', writableModules.value.map(m => m.module_category))
+  
   const categories = [...new Set(writableModules.value.map(m => m.module_category))]
+  console.log('🔍 [SUBMIT DEBUG] 最终可用分类:', categories)
   return categories.sort()
 })
 
@@ -265,14 +269,21 @@ const filteredModules = computed(() => {
 
 // 计算分类可写模块
 const categorizedWritableModules = computed(() => {
+  console.log('🔍 [SUBMIT DEBUG] 计算分类可写模块，可写模块数:', writableModules.value.length)
+  
   const categoryMap = new Map<string, Module[]>()
   
   writableModules.value.forEach(module => {
-    if (!categoryMap.has(module.module_category)) {
-      categoryMap.set(module.module_category, [])
+    console.log(`🔍 [SUBMIT DEBUG] 处理模块: ${module.module_name}, 分类: ${module.module_category}, 权限: ${module.permission_type}`)
+    const categoryName = module.module_category
+    
+    if (!categoryMap.has(categoryName)) {
+      categoryMap.set(categoryName, [])
     }
-    categoryMap.get(module.module_category)!.push(module)
+    categoryMap.get(categoryName)!.push(module)
   })
+  
+  console.log('🔍 [SUBMIT DEBUG] 分类映射结果:', Object.fromEntries(categoryMap))
   
   const result: CategorizedModule[] = []
   categoryMap.forEach((moduleList, categoryName) => {
@@ -290,6 +301,7 @@ const categorizedWritableModules = computed(() => {
     })
   })
   
+  console.log('🔍 [SUBMIT DEBUG] 最终分类结果:', result.map(r => ({name: r.name, count: r.modules.length})))
   return result.sort((a, b) => a.name.localeCompare(b.name))
 })
 
@@ -309,15 +321,50 @@ const getSubmissionInfo = (module: Module | null) => {
 const fetchUserModules = async () => {
   try {
     const userId = userStore.userInfo?.id || 1
-    const response = await fetch(`http://47.111.95.19:3000/permissions/user/${userId}`)
+    
+    // 从localStorage获取用户选择的公司
+    const selectedCompany = localStorage.getItem('selectedCompany') || ''
+    console.log('🔍 [SUBMIT DEBUG] 用户ID:', userId, '选择的公司:', selectedCompany)
+    
+    const response = await fetch(`http://127.0.0.1:3000/permissions/user/${userId}`)
+    console.log('🔍 [SUBMIT DEBUG] API响应状态:', response.status)
     
     if (!response.ok) {
       throw new Error('获取用户权限失败')
     }
     
     const result = await response.json()
+    console.log('🔍 [SUBMIT DEBUG] API返回结果:', result)
+    
     if (result.success) {
-      modules.value = result.data.accessible_modules || []
+      let allModules = result.data.accessible_modules || []
+      
+      // 根据选择的公司过滤模块
+      if (selectedCompany === '上海南华兰陵电气有限公司') {
+        // 南华电气公司：只显示企管、生产、营销、财务
+        modules.value = allModules.filter(module => 
+          ['企管', '生产', '营销', '财务'].includes(module.module_category)
+        )
+        console.log('🔍 [SUBMIT DEBUG] 南华电气公司过滤后模块数量:', modules.value.length)
+      } else if (selectedCompany === '上海南华兰陵实业有限公司') {
+        // 南华实业公司：只显示南华兰陵实业
+        modules.value = allModules.filter(module => 
+          module.module_category === '南华兰陵实业'
+        )
+        console.log('🔍 [SUBMIT DEBUG] 南华实业公司过滤后模块数量:', modules.value.length)
+      } else if (selectedCompany === '常州拓源电气集团有限公司') {
+        // 拓源公司：只显示拓源公司
+        modules.value = allModules.filter(module => 
+          module.module_category === '拓源公司'
+        )
+        console.log('🔍 [SUBMIT DEBUG] 拓源公司过滤后模块数量:', modules.value.length)
+      } else {
+        // 其他情况显示所有模块
+        modules.value = allModules
+        console.log('🔍 [SUBMIT DEBUG] 显示所有模块数量:', modules.value.length)
+      }
+      
+      console.log('🔍 [SUBMIT DEBUG] 最终模块分类:', [...new Set(modules.value.map(m => m.module_category))])
     }
   } catch (error) {
     console.error('获取用户模块失败:', error)
@@ -329,7 +376,7 @@ const fetchSubmissions = async () => {
   try {
     const userId = userStore.userInfo?.id || 1
     // 获取用户可访问的模块的提交状态
-    const response = await fetch(`http://47.111.95.19:3000/forms/status/${selectedPeriod.value}?userId=${userId}`)
+    const response = await fetch(`http://127.0.0.1:3000/forms/status/${selectedPeriod.value}?userId=${userId}`)
     
     if (!response.ok) {
       throw new Error('获取提交记录失败')
@@ -352,7 +399,7 @@ const fetchSubmissions = async () => {
     console.error('获取提交记录失败:', error)
     // 如果新API失败，回退到简单的方式
     try {
-      const fallbackResponse = await fetch(`http://47.111.95.19:3000/permissions/user/${userStore.userInfo?.id || 1}/submissions?period=${selectedPeriod.value}`)
+      const fallbackResponse = await fetch(`http://127.0.0.1:3000/permissions/user/${userStore.userInfo?.id || 1}/submissions?period=${selectedPeriod.value}`)
       if (fallbackResponse.ok) {
         const fallbackResult = await fallbackResponse.json()
         if (fallbackResult.success) {
@@ -369,7 +416,7 @@ const fetchSubmissions = async () => {
 const fetchPendingForms = async () => {
   try {
     const userId = userStore.userInfo?.id || 1
-    const response = await fetch(`http://47.111.95.19:3000/permissions/user/${userId}/pending-forms?period=${selectedPeriod.value}`)
+    const response = await fetch(`http://127.0.0.1:3000/permissions/user/${userId}/pending-forms?period=${selectedPeriod.value}`)
     
     if (!response.ok) {
       throw new Error('获取待提交表单失败')
@@ -430,6 +477,13 @@ const navigateToModuleDirectly = (module: Module) => {
     'main_business_income': '/main-business-income',
     'order_to_income': '/order-to-income',
     'stock_order_to_income': '/stock-order-to-income',
+    
+    // 南华兰陵实业特有路径
+    'nanhua_order_to_income': '/nanhua/order-to-income',
+    'nanhua_stock_order_to_income': '/nanhua/stock-order-to-income',
+    'nanhua_cost_provision': '/nanhua/cost-provision',
+    
+    // 财务分区 - newTable
     'non_main_business': '/non-main-business',
     'business_contribution': '/business-contribution',
     'business_profit_margin': '/business-profit-margin',

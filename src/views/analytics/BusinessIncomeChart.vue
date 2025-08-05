@@ -199,7 +199,7 @@ const resetDataToDefault = () => {
 // 获取营业收入数据
 const fetchBusinessIncomeData = async () => {
   try {
-    const response = await fetch(`http://47.111.95.19:3000/analytics/business-income/${selectedYear.value}`)
+    const response = await fetch(`http://127.0.0.1:3000/analytics/business-income/${selectedYear.value}`)
     if (response.ok) {
       const result = await response.json()
       if (result.success && result.data) {
@@ -247,7 +247,7 @@ const fetchBusinessIncomeData = async () => {
 // 获取当月营业收入数据
 const fetchMonthlyCurrentData = async () => {
   try {
-    const response = await fetch(`http://47.111.95.19:3000/analytics/business-income-monthly/${selectedYear.value}`)
+    const response = await fetch(`http://127.0.0.1:3000/analytics/business-income-monthly/${selectedYear.value}`)
     if (response.ok) {
       const result = await response.json()
       if (result.success && result.data) {
@@ -336,6 +336,7 @@ const updateTrendChart = () => {
           type: 'line',
           data: categoryData.currentTotal,
           smooth: true,
+          connectNulls: false, // 不连接null值，让曲线在无数据处断开
           lineStyle: {
             color: categoryInfo.color,
             width: 3
@@ -371,7 +372,11 @@ const updateTrendChart = () => {
         if (!hasData) return '暂无数据'
         let result = `${params[0].name}<br/>`
         params.forEach(param => {
-          result += `${param.seriesName}: ${formatNumber(param.value)} 万元<br/>`
+          if (param.value === null) {
+            result += `${param.seriesName}: 暂无数据<br/>`
+          } else {
+            result += `${param.seriesName}: ${formatNumber(param.value)} 万元<br/>`
+          }
         })
         return result
       }
@@ -485,17 +490,23 @@ const updateMonthlyChart = () => {
 
         // 计算总额
         params.forEach(param => {
-          const value = Number(param.value || 0)
-          total += value
-          console.log(`${param.seriesName}: ${value}`) // 调试信息
+          if (param.value !== null) {
+            const value = Number(param.value || 0)
+            total += value
+            console.log(`${param.seriesName}: ${value}`) // 调试信息
+          }
         })
 
         // 显示各部分数据和占比
         params.forEach(param => {
-          const value = Number(param.value || 0)
+          const value = param.value === null ? 0 : Number(param.value || 0)
           const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : '0.0'
 
-          result += `${param.seriesName}: ${value.toLocaleString('zh-CN', { maximumFractionDigits: 2 })} 万元 (${percentage}%)<br/>`
+          if (param.value === null) {
+            result += `${param.seriesName}: 暂无数据<br/>`
+          } else {
+            result += `${param.seriesName}: ${value.toLocaleString('zh-CN', { maximumFractionDigits: 2 })} 万元 (${percentage}%)<br/>`
+          }
         })
 
         // 显示总计

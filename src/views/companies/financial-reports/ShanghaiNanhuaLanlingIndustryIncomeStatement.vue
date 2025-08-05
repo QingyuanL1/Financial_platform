@@ -92,7 +92,7 @@ const loadData = async (targetPeriod: string) => {
       return
     }
 
-    const response = await fetch(`http://47.111.95.19:3000/financial-reports/nanhua/income-statement/${targetPeriod}`, {
+    const response = await fetch(`http://127.0.0.1:3000/financial-reports/nanhua/income-statement/${targetPeriod}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -147,7 +147,7 @@ const handleSave = async () => {
   try {
     const dataToSave = convertToStorageFormat(period.value)
 
-    const response = await fetch('http://47.111.95.19:3000/financial-reports/nanhua/income-statement', {
+    const response = await fetch('http://127.0.0.1:3000/financial-reports/nanhua/income-statement', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'

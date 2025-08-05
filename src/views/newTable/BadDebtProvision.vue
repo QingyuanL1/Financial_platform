@@ -395,7 +395,7 @@ const loadAllMonthsData = async (currentPeriod: string) => {
       const monthPeriod = `${year}-${i.toString().padStart(2, '0')}`;
       try {
         const response = await fetch(
-          `http://47.111.95.19:3000/bad-debt-provision/${monthPeriod}`,
+          `http://127.0.0.1:3000/bad-debt-provision/${monthPeriod}`,
         );
         if (response.ok) {
           const result = await response.json();
@@ -554,7 +554,7 @@ const loadData = async (targetPeriod: string) => {
     console.log(`正在加载坏账准备数据，期间: ${targetPeriod}`);
 
     const response = await fetch(
-      `http://47.111.95.19:3000/bad-debt-provision/${targetPeriod}`,
+      `http://127.0.0.1:3000/bad-debt-provision/${targetPeriod}`,
     );
     let loadedData: any[] = [];
 
@@ -652,7 +652,7 @@ const handleSave = async () => {
     console.log('保存数据:', saveData);
 
     // 1. 保存到 bad_debt_provision 表
-    const response = await fetch('http://47.111.95.19:3000/bad-debt-provision', {
+    const response = await fetch('http://127.0.0.1:3000/bad-debt-provision', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

@@ -45,7 +45,7 @@
                                 {{ formatNumber(item.yearlyPlan) }}
                             </td>
                             <td class="border border-gray-300 px-4 py-2">
-                                <input v-model="item.current" type="number" class="w-full px-2 py-1 border rounded text-right" step="0.01" />
+                                <input v-model="item.current" type="number" class="w-full px-2 py-1 border rounded text-right" step="0.01" min="-999999999" />
                             </td>
                             <td class="border border-gray-300 px-4 py-2 text-right">
                                 {{ formatNumber(item.accumulated) }}
@@ -175,7 +175,7 @@ const totalData = computed(() => {
 // 加载数据
 const loadData = async (targetPeriod: string) => {
     try {
-        const response = await fetch(`http://47.111.95.19:3000/nanhua-business-income/${targetPeriod}`)
+        const response = await fetch(`http://127.0.0.1:3000/nanhua-business-income/${targetPeriod}`)
         if (!response.ok) {
             if (response.status !== 404) {
                 throw new Error('加载数据失败')
@@ -201,7 +201,7 @@ const loadData = async (targetPeriod: string) => {
 // 加载已保存的备注和建议
 const loadRemarksAndSuggestions = async (targetPeriod: string) => {
     try {
-        const response = await fetch(`http://47.111.95.19:3000/forms/submission/${MODULE_IDS.NANHUA_BUSINESS_INCOME}/${targetPeriod}`)
+        const response = await fetch(`http://127.0.0.1:3000/forms/submission/${MODULE_IDS.NANHUA_BUSINESS_INCOME}/${targetPeriod}`)
         if (response.ok) {
             const result = await response.json()
             if (result.success && result.data) {
@@ -240,7 +240,7 @@ watch(period, (newPeriod, oldPeriod) => {
 
 const handleSave = async () => {
     try {
-        const response = await fetch('http://47.111.95.19:3000/nanhua-business-income', {
+        const response = await fetch('http://127.0.0.1:3000/nanhua-business-income', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
